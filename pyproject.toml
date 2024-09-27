@@ -19,7 +19,7 @@ exclude_also = [
 
 [tool.poetry]
 name = "check_done"
-version = "0.0.1"
+version = "1.0.0"
 description = "Checks and archives completed issues from a GitHub project board"
 authors = ["Siisurit e.U."]
 license = "MIT"
