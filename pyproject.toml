@@ -1,0 +1,159 @@
+[tool.coverage.report]
+exclude_also = [
+    # Don't complain about missing debug-only code:
+    "def __repr__",
+    "if self\\.debug",
+
+    # Don't complain if tests don't hit defensive assertion code:
+    "assert False",
+    "raise AssertionError",
+    "raise NotImplementedError",
+
+    # Don't complain if non-runnable code isn't run:
+    "if False:",
+    "if __name__ == .__main__.:",
+
+    # Don't complain about abstract methods, they aren't run:
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.poetry]
+name = "check_done"
+version = "0.0.1"
+description = "Checks and archives completed issues from a GitHub project board"
+authors = ["Siisurit e.U."]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = ">=3.12, <4"
+requests = "^2.31.0"
+pydantic = "^2.8"
+python-dotenv = "^1.0.0"
+errortext = "^0.1.0"
+pydantic-extra-types = "^2.9"
+ruamel-yaml = "^0.18.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.0"
+pytest-xdist = "^2.5.0"
+pytest-cov = "^4.0.0"
+check-uncommitted-git-changes = "^1.0.1"
+requests-mock = "^1.10.0"
+setuptools = "^68.0.0"
+pygount = "^1.6.1"
+pre-commit = "^3.5.0"
+ruff = "^0.4.8"
+
+[build-system]
+requires = ["poetry-core>=1.8.2"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = """\
+    --strict-config
+    --strict-markers
+    """
+filterwarnings = [
+    "default",
+    "ignore:.*datetime.datetime.utcnow.. is deprecated",
+    "ignore:.*'typing.ByteString' is deprecated",
+]
+minversion = "7.0"
+testpaths = [
+    "tests",
+]
+
+[tool.ruff]
+exclude = [
+    ".eggs",
+    ".git",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "build",
+    "dist",
+    "htmlcov",
+]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+ignore = [
+    # Missing trailing comma → May cause conflicts when used with the formatter.
+    "COM812",
+    # Too many branches
+    "PLR0912",
+    # Too many arguments in function definition
+    "PLR0913",
+    # Too many statements
+    "PLR0915",
+    # Magic value used in comparison
+    "PLR2004",
+    # Unneccesarry assign → We regularly use `result = ...; return result` to examine the result in the debugger.
+    "RET504",
+    # Mutable class attributes should be annotated with `typing.ClassVar`
+    "RUF012",
+    # Avoid specifying long messages outside the exception class
+    "TRY003",
+    # Abstract `raise` to an inner function
+    "TRY301",
+]
+select = [
+    # flake8-builtins
+    "A",
+    # flake8-bugbear
+    "B",
+    # flake8-commas
+    "COM",
+    # flake8-comprehensions
+    "C4",
+    # flake8-django
+    "DJ",
+    # flake8-datetimez
+    "DTZ",
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # isort
+    "I",
+    # flake8-no-pep420
+    "INP",
+    #  flake8-gettext
+    "INT",
+    # flake8-logging
+    "LOG",
+    # perflint
+    "PERF",
+    # pygrep-hooks
+    "PGH",
+    # flake8-pie
+    "PIE",
+    # pylint
+    "PL",
+    # flake8-use-pathlib
+    "PTH",
+    # refactor
+    "R",
+    # flake8-raise
+    "RSE",
+    # flake8-return
+    "RET",
+    # ruff specific rules
+    "RUF",
+    # flake8-self
+    "SLF",
+    # flake8-simplify
+    "SIM",
+    # tryceratops
+    "TRY",
+    # flake8-debugger
+    "T10",
+    # flake8-print
+    "T20",
+    # pyupgrade
+    "UP",
+]
