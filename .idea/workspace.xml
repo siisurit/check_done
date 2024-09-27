@@ -1,115 +1,115 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="AutoImportSettings">
-	<option name="autoReloadType" value="SELECTIVE" />
+    <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-	<list default="true" id="dfb370e8-09ed-4903-b7ad-6ebfc910ba14" name="Changes" comment="#1 Fix script">
-	  <change afterPath="$PROJECT_DIR$/.idea/check_done.iml" afterDir="false" />
-	  <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-	  <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-	  <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-	  <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-	  <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-	  <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-	</list>
-	<option name="SHOW_DIALOG" value="false" />
-	<option name="HIGHLIGHT_CONFLICTS" value="true" />
-	<option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
-	<option name="LAST_RESOLUTION" value="IGNORE" />
+    <list default="true" id="dfb370e8-09ed-4903-b7ad-6ebfc910ba14" name="Changes" comment="#1 Add PyCharm project files" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
-	<option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MarkdownSettingsMigration">
-	<option name="stateVersion" value="1" />
+    <option name="stateVersion" value="1" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 3
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 3
+}</component>
   <component name="ProjectId" id="2meqA4AKtqlrDxH5rDf54HsmDpK" />
   <component name="ProjectViewState">
-	<option name="hideEmptyMiddlePackages" value="true" />
-	<option name="showLibraryContents" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-	"RunOnceActivity.OpenProjectViewOnStart": "true",
-	"RunOnceActivity.ShowReadmeOnStart": "true",
-	"git-widget-placeholder": "1-add-project",
-	"ignore.virus.scanning.warn.message": "true",
-	"last_opened_file_path": "C:/PyCharm_Projects",
-	"node.js.detected.package.eslint": "true",
-	"node.js.detected.package.tslint": "true",
-	"node.js.selected.package.eslint": "(autodetect)",
-	"node.js.selected.package.tslint": "(autodetect)",
-	"nodejs_package_manager_path": "npm",
-	"settings.editor.selected.configurable": "configurable.group.editor",
-	"vue.rearranger.settings.migration": "true"
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "1-add-project",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/PyCharm_Projects",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "configurable.group.editor",
+    "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="SharedIndexes">
-	<attachedChunks>
-	  <set>
-		<option value="bundled-python-sdk-09665e90c3a7-b11f5e8da5ad-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.15026.15" />
-	  </set>
-	</attachedChunks>
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-09665e90c3a7-b11f5e8da5ad-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-233.15026.15" />
+      </set>
+    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
-	<task active="true" id="Default" summary="Default task">
-	  <changelist id="dfb370e8-09ed-4903-b7ad-6ebfc910ba14" name="Changes" comment="" />
-	  <created>1727447245060</created>
-	  <option name="number" value="Default" />
-	  <option name="presentableId" value="Default" />
-	  <updated>1727447245060</updated>
-	  <workItem from="1727447248621" duration="733000" />
-	</task>
-	<task id="LOCAL-00001" summary="#1 Fix project setup">
-	  <option name="closed" value="true" />
-	  <created>1727447724701</created>
-	  <option name="number" value="00001" />
-	  <option name="presentableId" value="LOCAL-00001" />
-	  <option name="project" value="LOCAL" />
-	  <updated>1727447724701</updated>
-	</task>
-	<task id="LOCAL-00002" summary="#1 Update dependencies">
-	  <option name="closed" value="true" />
-	  <created>1727447745107</created>
-	  <option name="number" value="00002" />
-	  <option name="presentableId" value="LOCAL-00002" />
-	  <option name="project" value="LOCAL" />
-	  <updated>1727447745107</updated>
-	</task>
-	<task id="LOCAL-00003" summary="#1 Clean up formatting">
-	  <option name="closed" value="true" />
-	  <created>1727447874330</created>
-	  <option name="number" value="00003" />
-	  <option name="presentableId" value="LOCAL-00003" />
-	  <option name="project" value="LOCAL" />
-	  <updated>1727447874330</updated>
-	</task>
-	<task id="LOCAL-00004" summary="#1 Fix script">
-	  <option name="closed" value="true" />
-	  <created>1727447971739</created>
-	  <option name="number" value="00004" />
-	  <option name="presentableId" value="LOCAL-00004" />
-	  <option name="project" value="LOCAL" />
-	  <updated>1727447971739</updated>
-	</task>
-	<option name="localTasksCounter" value="5" />
-	<servers />
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="dfb370e8-09ed-4903-b7ad-6ebfc910ba14" name="Changes" comment="" />
+      <created>1727447245060</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1727447245060</updated>
+      <workItem from="1727447248621" duration="1055000" />
+    </task>
+    <task id="LOCAL-00001" summary="#1 Fix project setup">
+      <option name="closed" value="true" />
+      <created>1727447724701</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1727447724701</updated>
+    </task>
+    <task id="LOCAL-00002" summary="#1 Update dependencies">
+      <option name="closed" value="true" />
+      <created>1727447745107</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1727447745107</updated>
+    </task>
+    <task id="LOCAL-00003" summary="#1 Clean up formatting">
+      <option name="closed" value="true" />
+      <created>1727447874330</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1727447874330</updated>
+    </task>
+    <task id="LOCAL-00004" summary="#1 Fix script">
+      <option name="closed" value="true" />
+      <created>1727447971739</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1727447971739</updated>
+    </task>
+    <task id="LOCAL-00005" summary="#1 Add PyCharm project files">
+      <option name="closed" value="true" />
+      <created>1727448114636</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1727448114636</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
+    <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-	<option name="version" value="3" />
+    <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
-	<MESSAGE value="#1 Fix project setup" />
-	<MESSAGE value="#1 Update dependencies" />
-	<MESSAGE value="#1 Clean up formatting" />
-	<MESSAGE value="#1 Add PyCharm project files" />
-	<MESSAGE value="#1 Fix script" />
-	<option name="LAST_COMMIT_MESSAGE" value="#1 Fix script" />
+    <MESSAGE value="#1 Fix project setup" />
+    <MESSAGE value="#1 Update dependencies" />
+    <MESSAGE value="#1 Clean up formatting" />
+    <MESSAGE value="#1 Fix script" />
+    <MESSAGE value="#1 Add PyCharm project files" />
+    <option name="LAST_COMMIT_MESSAGE" value="#1 Add PyCharm project files" />
   </component>
 </project>
