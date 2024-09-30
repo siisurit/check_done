@@ -43,6 +43,10 @@ pygments = "^2"
 chardet = "^5"
 rich = ">=9, <14"
 gitpython = "^3"
+pyyaml = "^6.0.2"
+python-dotenv = "^1.0.1"
+pytest-mock = "^3.14.0"
+pydantic = "^2.9.2"
 
 [tool.poetry.dev-dependencies]
 coveralls = "^4"
