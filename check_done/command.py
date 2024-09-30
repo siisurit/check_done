@@ -2,7 +2,7 @@ import logging
 import sys
 from pathlib import Path
 
-from check_done.common import checked_config, load_yaml_config
+from check_done.common import checked_config, load_yaml
 
 logger = logging.getLogger(__name__)
 _CONFIG_PATH = Path(__file__).parent.parent / "data" / ".check_done.yaml"
@@ -11,7 +11,7 @@ _CONFIG_PATH = Path(__file__).parent.parent / "data" / ".check_done.yaml"
 def check_done_command():
     result = 1
     try:
-        config_file = load_yaml_config(_CONFIG_PATH)
+        config_file = load_yaml(_CONFIG_PATH)
         checked_config(config_file)
         result = 0
     except KeyboardInterrupt:

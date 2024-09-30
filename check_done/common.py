@@ -20,7 +20,7 @@ class _ConfigInfo(BaseModel):
     board: _BoardInfo
 
 
-def load_yaml_config(config_path: Path | str) -> dict:
+def load_yaml(config_path: Path) -> dict:
     try:
         with open(config_path) as config_file:
             result = yaml.safe_load(config_file)
