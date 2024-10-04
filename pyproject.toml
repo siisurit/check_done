@@ -47,6 +47,8 @@ pyyaml = "^6.0.2"
 python-dotenv = "^1.0.1"
 pytest-mock = "^3.14.0"
 pydantic = "^2.9.2"
+pyjwt = "^2.9.0"
+requests-mock = "^1.12.1"
 
 [tool.poetry.dev-dependencies]
 coveralls = "^4"

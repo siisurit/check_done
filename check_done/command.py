@@ -1,23 +1,23 @@
 import logging
 import sys
-from pathlib import Path
 
-from check_done.common import checked_config, load_yaml
+from check_done.authentication import github_app_access_token
+from check_done.common import config_info, github_organization_name_and_project_number_from_url_if_matches
 
 logger = logging.getLogger(__name__)
-_CONFIG_PATH = Path(__file__).parent.parent / "data" / ".check_done.yaml"
 
 
 def check_done_command():
     result = 1
     try:
-        config_file = load_yaml(_CONFIG_PATH)
-        checked_config(config_file)
+        board_url = config_info().board.url
+        organization_name, _ = github_organization_name_and_project_number_from_url_if_matches(board_url)
+        github_app_access_token(organization_name)
         result = 0
     except KeyboardInterrupt:
         logging.exception("Interrupted as requested by user.")
     except Exception:
-        logging.exception()
+        logging.exception("Cannot check done issues.")
     return result
 
 
