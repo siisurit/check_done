@@ -3,7 +3,7 @@ import time
 import jwt
 import requests
 
-from check_done.common import GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, AuthenticationError
+from check_done.common import GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, AuthenticationError, HttpBearerAuth
 
 _GRANT_TYPE = "urn:ietf:params:oauth:grant-type:device_code"
 _SECONDS_PER_MINUTE = 60
@@ -20,13 +20,11 @@ class _Authentication:
     def __init__(self, organization: str):
         self.organization = organization
         try:
-            self.jwt_token = self._generated_jwt_token()
+            self._jwt_token = self._generated_jwt_token()
             self.session = requests.Session()
-            self.session.headers = {
-                "Authorization": f"Bearer {self.jwt_token}",
-                "Accept": "application/vnd.github+json",
-            }
-            self.installation_id = self._get_installation_id()
+            self.session.auth = HttpBearerAuth(self._jwt_token)
+            self.session.headers = {"Accept": "application/vnd.github+json"}
+            self._installation_id = self._get_installation_id()
             self._access_token = self._get_installation_access_token()
         except Exception as error:
             raise AuthenticationError(f"Cannot authenticate with organization: {organization}") from error
@@ -62,7 +60,7 @@ class _Authentication:
         """Retrieves the access token using the installation ID."""
         headers = self.session.headers
         response = self.session.post(
-            f"https://api.github.com/app/installations/{self.installation_id}/access_tokens", headers=headers
+            f"https://api.github.com/app/installations/{self._installation_id}/access_tokens", headers=headers
         )
         if response.status_code == 201:
             return response.json().get("token")
