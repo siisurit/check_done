@@ -7,6 +7,7 @@ from typing import Any
 import yaml
 from dotenv import load_dotenv
 from pydantic import BaseModel, field_validator
+from requests.auth import AuthBase
 
 load_dotenv()
 _ENVVAR_GITHUB_APP_ID = "GITHUB_APP_ID"
@@ -81,4 +82,15 @@ def config_map_from_yaml_file(config_path: Path) -> dict:
 
 
 class AuthenticationError(Exception):
-    """Error raised due to failed authentication in the JWT process."""
+    """Error raised due to failed JWT authentication process."""
+
+
+class HttpBearerAuth(AuthBase):
+    # Source:
+    # <https://stackoverflow.com/questions/29931671/making-an-api-call-in-python-with-an-api-that-requires-a-bearer-token>
+    def __init__(self, token):
+        self.token = token
+
+    def __call__(self, request):
+        request.headers["Authorization"] = "Bearer " + self.token
+        return request

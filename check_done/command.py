@@ -1,8 +1,7 @@
 import logging
 import sys
 
-from check_done.authentication import github_app_access_token
-from check_done.common import config_info, github_organization_name_and_project_number_from_url_if_matches
+from check_done.done_issues_info.done_issues_info import done_issues_info
 
 logger = logging.getLogger(__name__)
 
@@ -10,9 +9,7 @@ logger = logging.getLogger(__name__)
 def check_done_command():
     result = 1
     try:
-        board_url = config_info().board.url
-        organization_name, _ = github_organization_name_and_project_number_from_url_if_matches(board_url)
-        github_app_access_token(organization_name)
+        done_issues_info()
         result = 0
     except KeyboardInterrupt:
         logging.exception("Interrupted as requested by user.")
@@ -22,7 +19,7 @@ def check_done_command():
 
 
 def main():
-    logging.basicConfig(level=logging.WARNING)
+    logging.basicConfig(level=logging.INFO)
     sys.exit(check_done_command())
 
 
