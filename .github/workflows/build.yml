@@ -37,6 +37,9 @@ jobs:
         run: |
           poetry build
       - name: Run the test suite
+        env:
+          GITHUB_PRIVATE_KEY: ${{ secrets.GITHUB_APP_ID }}
+          GITHUB_APP_ID: ${{ secrets.GITHUB_APP_PRIVATE_KEY }}
         run: |
           poetry run pytest --cov=check-done --cov-branch
       - name: Run check-done

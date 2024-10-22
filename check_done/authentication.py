@@ -16,6 +16,9 @@ def github_app_access_token(organization: str) -> str:
     return authentication.access_token
 
 
+# TODO: Refactor code into functions instead of a class.
+
+
 class _Authentication:
     def __init__(self, organization: str):
         self.organization = organization
