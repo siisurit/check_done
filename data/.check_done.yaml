@@ -1,6 +1,2 @@
-board:
-  url: "https://github.com/orgs/siisurit/projects/1"
-  api_key: ${GITHUB_API_KEY}
-  trackers:
-    - "https://github.com/siisurit/siisurit"
-    - "https://github.com/siisurit/siisurit_website"
+board_url: "https://github.com/orgs/siisurit/projects/2"
+api_key: ${GITHUB_API_KEY}

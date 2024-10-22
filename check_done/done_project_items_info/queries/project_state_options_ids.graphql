@@ -1,0 +1,30 @@
+query projectStateOptionsIds(
+  $projectId: ID!
+  $maxEntriesPerPage: Int!
+  $after: String
+) {
+  node(id: $projectId) {
+    ... on ProjectV2 {
+      id
+      number
+      __typename
+      fields(first: $maxEntriesPerPage, after: $after) {
+        nodes {
+          __typename
+          ... on ProjectV2SingleSelectField {
+            id
+            name
+            options {
+              id
+              name
+            }
+          }
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  }
+}

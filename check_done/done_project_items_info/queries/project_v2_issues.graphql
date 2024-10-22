@@ -1,0 +1,41 @@
+query projectV2Issues(
+  $projectId: ID!
+  $maxEntriesPerPage: Int!
+  $after: String
+) {
+  node(id: $projectId) {
+    ... on ProjectV2 {
+      __typename
+      id
+      number
+      title
+      shortDescription
+      items(first: $maxEntriesPerPage, after: $after) {
+        nodes {
+          __typename
+          type
+          content {
+            ... on Issue {
+              number
+              state
+              title
+              repository {
+                name
+              }
+            }
+          }
+          fieldValueByName(name: "Status") {
+            ... on ProjectV2ItemFieldSingleSelectValue {
+              status: name
+              optionId
+            }
+          }
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  }
+}
