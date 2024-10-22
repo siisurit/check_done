@@ -1,0 +1,19 @@
+query projectsIds($login: String!, $maxEntriesPerPage: Int!, $after: String) {
+  organization(login: $login) {
+    projectsV2(
+      first: $maxEntriesPerPage
+      after: $after
+      orderBy: { field: NUMBER, direction: ASC }
+    ) {
+      nodes {
+        __typename
+        id
+        number
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}

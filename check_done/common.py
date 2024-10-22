@@ -21,10 +21,9 @@ _GITHUB_ORGANIZATION_NAME_AND_PROJECT_NUMBER_URL_REGEX = re.compile(
 _CONFIG_PATH = Path(__file__).parent.parent / "data" / ".check_done.yaml"
 
 
-class _BoardInfo(BaseModel):
-    url: str
+class _ConfigInfo(BaseModel):
+    board_url: str
     api_key: str
-    trackers: list[str]
 
     @field_validator("api_key", mode="before")
     def api_key_from_env(cls, api_key: Any | None):
@@ -38,10 +37,6 @@ class _BoardInfo(BaseModel):
         else:
             result = api_key
         return result
-
-
-class _ConfigInfo(BaseModel):
-    board: _BoardInfo
 
 
 def config_info() -> _ConfigInfo:
