@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 def _issue_warning_string(issue: IssueInfo, reason_for_warning: str) -> str:
     # TODO: Ponder better wording.
     return (
-        f" Issue '#{issue.number} {issue.title}' in repository '{issue.repository.name}' "
-        f"should be {reason_for_warning}."
+        f" Done issue should be {reason_for_warning}."
+        f" - repository: '{issue.repository.name}', issue: '#{issue.number} {issue.title}'."
     )
 
 
