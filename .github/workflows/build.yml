@@ -39,7 +39,7 @@ jobs:
       - name: Run the test suite
         env:
           CHECK_DONE_GITHUB_APP_ID: ${{ secrets.CHECK_DONE_GITHUB_APP_ID }}
-          CHECK_DONE_GITHUB_PRIVATE_KEY: |
+          CHECK_DONE_GITHUB_APP_PRIVATE_KEY: |
             ${{ secrets.CHECK_DONE_GITHUB_APP_PRIVATE_KEY }}
         run: |
           poetry run pytest --cov=check-done --cov-branch
