@@ -8,18 +8,18 @@ from check_done.done_project_items_info.done_project_items_info import (
     PROJECT_NUMBER,
     GraphQlError,
     checked_graphql_data_map,
-    done_issue_infos,
     done_project_items_info,
-    get_nodes_info_from_response_info,
+    filtered_project_item_infos_by_done_status,
+    get_paginated_query_info_from_response_info,
     matching_last_project_state_option_id,
     matching_project_id,
     minimized_graphql,
 )
 from check_done.done_project_items_info.info import (
-    IssueInfo,
-    IssueState,
-    NodesInfo,
+    GithubContentType,
     PageInfo,
+    PaginatedQueryInfo,
+    ProjectItemInfo,
     ProjectV2ItemNodeInfo,
     ProjectV2ItemProjectStatusInfo,
     ProjectV2NodeInfo,
@@ -125,18 +125,18 @@ class _MockedInfo(BaseModel):
 
 
 def test_can_get_nodes_info_from_response_info():
-    mocked_node_info = NodesInfo(nodes=[], pageInfo=PageInfo(endCursor="a", hasNextPage=True))
-    result = get_nodes_info_from_response_info(mocked_node_info)
-    assert isinstance(result, NodesInfo)
+    mocked_node_info = PaginatedQueryInfo(nodes=[], pageInfo=PageInfo(endCursor="a", hasNextPage=True))
+    result = get_paginated_query_info_from_response_info(mocked_node_info)
+    assert isinstance(result, PaginatedQueryInfo)
 
 
 def test_fails_to_get_nodes_info_from_node_with_no_matching_node_info_type():
     mocked_model = _MockedInfo(id=1)
     with pytest.raises(ValueError, match="Could not find nodes info in id=1."):
-        get_nodes_info_from_response_info(mocked_model)
+        get_paginated_query_info_from_response_info(mocked_model)
 
 
-def test_can_get_project_items_info():
+def test_can_get_done_project_items_info():
     assert len(done_project_items_info()) >= 1
 
 
@@ -190,43 +190,70 @@ def test_fails_to_find_matching_last_project_state_option_id():
         )
 
 
-def test_can_get_done_issue_infos():
-    _matching_project_id = "b2"
+def test_can_get_filtered_project_item_infos_by_done_status():
+    _in_progress_project_status_id = "a1"
+    _done_project_status_id = "b2"
     _mocked_done_issues_node_infos = [
         ProjectV2ItemNodeInfo(
-            type="ISSUE",
-            content=IssueInfo(
+            type=GithubContentType.ISSUE,
+            content=ProjectItemInfo(
                 number=1,
-                state=IssueState.OPEN,
+                closed=False,
                 title="Do something",
                 repository=RepositoryInfo(name="my_repo"),
             ),
-            fieldValueByName=ProjectV2ItemProjectStatusInfo(status="In Progress", optionId="a1"),
+            fieldValueByName=ProjectV2ItemProjectStatusInfo(
+                status="In Progress", optionId=_in_progress_project_status_id
+            ),
         ),
         ProjectV2ItemNodeInfo(
-            type="ISSUE",
-            content=IssueInfo(
+            type=GithubContentType.ISSUE,
+            content=ProjectItemInfo(
                 number=2,
-                state=IssueState.CLOSED,
+                closed=True,
                 title="Do something else",
                 repository=RepositoryInfo(name="my_repo"),
             ),
-            fieldValueByName=ProjectV2ItemProjectStatusInfo(status="Done", optionId=_matching_project_id),
+            fieldValueByName=ProjectV2ItemProjectStatusInfo(status="Done", optionId=_done_project_status_id),
+        ),
+        ProjectV2ItemNodeInfo(
+            type=GithubContentType.PULL_REQUEST,
+            content=ProjectItemInfo(
+                number=3,
+                closed=False,
+                title="#1 Do something",
+                repository=RepositoryInfo(name="my_repo"),
+            ),
+            fieldValueByName=ProjectV2ItemProjectStatusInfo(
+                status="In Progress", optionId=_in_progress_project_status_id
+            ),
+        ),
+        ProjectV2ItemNodeInfo(
+            type=GithubContentType.PULL_REQUEST,
+            content=ProjectItemInfo(
+                number=4,
+                closed=True,
+                title="#2 Do something else",
+                repository=RepositoryInfo(name="my_repo"),
+            ),
+            fieldValueByName=ProjectV2ItemProjectStatusInfo(status="Done", optionId=_done_project_status_id),
         ),
     ]
-    _done_issue_infos = done_issue_infos(_mocked_done_issues_node_infos, _matching_project_id)
-    assert len(_done_issue_infos) == 1
+    _done_issue_infos = filtered_project_item_infos_by_done_status(
+        _mocked_done_issues_node_infos, _done_project_status_id
+    )
+    assert len(_done_issue_infos) == 2
 
 
-def test_fails_to_find_any_done_issue_infos(caplog):
+def test_fails_to_find_any_filtered_project_item_infos_by_done_status(caplog):
     _matching_project_id = "a1"
     _other_project_id = "b2"
     _mocked_done_issues_node_infos = [
         ProjectV2ItemNodeInfo(
-            type="ISSUE",
-            content=IssueInfo(
+            type=GithubContentType.ISSUE,
+            content=ProjectItemInfo(
                 number=1,
-                state=IssueState.OPEN,
+                closed=False,
                 title="Do something",
                 repository=RepositoryInfo(name="my_repo"),
             ),
@@ -234,8 +261,8 @@ def test_fails_to_find_any_done_issue_infos(caplog):
         )
     ]
 
-    _done_issue_infos = done_issue_infos(_mocked_done_issues_node_infos, _matching_project_id)
+    _done_issue_infos = filtered_project_item_infos_by_done_status(_mocked_done_issues_node_infos, _matching_project_id)
     assert len(_done_issue_infos) < 1
 
-    expected_log_warning = "No issues found with the last project status option selected "
+    expected_log_warning = "No project items found with the last project status option selected "
     assert expected_log_warning in caplog.text
