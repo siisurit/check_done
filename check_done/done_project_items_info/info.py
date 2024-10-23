@@ -1,4 +1,4 @@
-from enum import Enum, StrEnum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, NonNegativeInt, field_validator
@@ -13,9 +13,14 @@ class NodesTypeName(StrEnum):
     SingleUserIssueCustomField = "SingleUserIssueCustomField"
 
 
-class IssueState(Enum):
+class ProjectItemState(StrEnum):
     CLOSED = "CLOSED"
     OPEN = "OPEN"
+
+
+class GithubContentType(StrEnum):
+    ISSUE = "ISSUE"
+    PULL_REQUEST = "PULL_REQUEST"
 
 
 class _EmptyDict(BaseModel):
@@ -27,7 +32,7 @@ class PageInfo(BaseModel):
     hasNextPage: bool
 
 
-class NodesInfo(BaseModel):
+class PaginatedQueryInfo(BaseModel):
     nodes: list[Any]
     page_info: PageInfo = Field(alias="pageInfo")
 
@@ -46,8 +51,8 @@ class ProjectV2NodeInfo(BaseModel):
     id: str
     number: NonNegativeInt
     typename: str = Field(alias="__typename")
-    fields: NodesInfo | None = None
-    items: NodesInfo | None = None
+    fields: PaginatedQueryInfo | None = None
+    items: PaginatedQueryInfo | None = None
 
 
 class ProjectV2Options(BaseModel):
@@ -71,18 +76,18 @@ class RepositoryInfo(BaseModel):
     name: str
 
 
-class IssueInfo(BaseModel):
+class ProjectItemInfo(BaseModel):
     number: NonNegativeInt
-    state: IssueState
+    closed: bool
     title: str
     repository: RepositoryInfo
 
 
 class ProjectV2ItemNodeInfo(BaseModel):
-    type: str
+    type: GithubContentType
     # TODO#4: When including pull requests, implement their info model
     #  See: https://docs.github.com/en/graphql/reference/unions#projectv2itemcontent
-    content: IssueInfo | _EmptyDict = None
+    content: ProjectItemInfo | _EmptyDict = None
     field_value_by_name: ProjectV2ItemProjectStatusInfo | None = Field(alias="fieldValueByName", default=None)
 
 
@@ -91,7 +96,7 @@ class NodeByIdInfo(BaseModel):
 
 
 class _ProjectsV2Info(BaseModel):
-    projects_v2: NodesInfo = Field(alias="projectsV2")
+    projects_v2: PaginatedQueryInfo = Field(alias="projectsV2")
 
 
 class OrganizationInfo(BaseModel):

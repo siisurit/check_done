@@ -16,10 +16,11 @@ from check_done.common import (
     github_organization_name_and_project_number_from_url_if_matches,
 )
 from check_done.done_project_items_info.info import (
-    IssueInfo,
+    GithubContentType,
     NodeByIdInfo,
-    NodesInfo,
     OrganizationInfo,
+    PaginatedQueryInfo,
+    ProjectItemInfo,
     ProjectV2ItemNodeInfo,
     ProjectV2NodeInfo,
     ProjectV2SingleSelectFieldNodeInfo,
@@ -32,30 +33,26 @@ _ACCESS_TOKEN = github_app_access_token(ORGANIZATION_NAME)
 _PATH_TO_QUERIES = Path(__file__).parent.parent / "done_project_items_info" / "queries"
 _MAX_ENTRIES_PER_PAGE = 100
 _GITHUB_PROJECT_STATUS_FIELD_NAME = "Status"
-# TODO#4: Turn into an enum class when implementing pull requests
-_GITHUB_ISSUE_TYPE_NAME = "ISSUE"
 logger = logging.getLogger(__name__)
 
 
-def done_project_items_info() -> list[IssueInfo]:
-    result = []
+def done_project_items_info() -> list[ProjectItemInfo]:
     session = requests.Session()
     session.headers = {"Accept": "application/vnd.github+json"}
     session.auth = HttpBearerAuth(_ACCESS_TOKEN)
 
-    project_id_node_infos = _query_nodes_info(OrganizationInfo, _GraphQlQuery.PROJECTS_IDS.name, session)
-    project_id = matching_project_id(project_id_node_infos)
+    projects_ids_nodes_info = _query_nodes_info(OrganizationInfo, _GraphQlQuery.PROJECTS_IDS.name, session)
+    project_id = matching_project_id(projects_ids_nodes_info)
 
-    last_project_state_option_id_node_infos = _query_nodes_info(
+    last_project_state_option_ids_nodes_info = _query_nodes_info(
         NodeByIdInfo, _GraphQlQuery.PROJECT_STATE_OPTIONS_IDS.name, session, project_id
     )
-    last_project_state_option_id = matching_last_project_state_option_id(last_project_state_option_id_node_infos)
+    last_project_state_option_id = matching_last_project_state_option_id(last_project_state_option_ids_nodes_info)
 
-    done_issues_node_infos = _query_nodes_info(NodeByIdInfo, _GraphQlQuery.PROJECT_V_2_ISSUES.name, session, project_id)
-    _done_issue_infos = done_issue_infos(done_issues_node_infos, last_project_state_option_id)
-
-    result.extend(_done_issue_infos)
-    # TODO#4: Extend done PRs to result
+    project_items_nodes_info = _query_nodes_info(
+        NodeByIdInfo, _GraphQlQuery.PROJECT_V_2_ITEMS.name, session, project_id
+    )
+    result = filtered_project_item_infos_by_done_status(project_items_nodes_info, last_project_state_option_id)
     return result
 
 
@@ -88,23 +85,21 @@ def matching_last_project_state_option_id(node_infos: list[ProjectV2SingleSelect
         ) from error
 
 
-def done_issue_infos(node_infos: list[ProjectV2ItemNodeInfo], last_project_state_option_id: str) -> list[IssueInfo]:
+def filtered_project_item_infos_by_done_status(
+    node_infos: list[ProjectV2ItemNodeInfo], last_project_state_option_id: str
+) -> list[ProjectItemInfo]:
     result = []
     for node in node_infos:
         has_last_project_state_option = node.field_value_by_name.option_id == last_project_state_option_id
-        has_type_of_issue = node.type == _GITHUB_ISSUE_TYPE_NAME
-        if has_last_project_state_option and has_type_of_issue:
+        assert node.type == GithubContentType.ISSUE or GithubContentType.PULL_REQUEST
+        if has_last_project_state_option:
             result.append(node.content)
     if len(result) < 1:
         logger.warning(
-            f"No issues found with the last project status option selected in the GitHub project with number "
+            f"No project items found with the last project status option selected in the GitHub project with number "
             f"`{PROJECT_NUMBER}` in organization '{ORGANIZATION_NAME}'"
         )
     return result
-
-
-# TODO#4: Write a function that checks if there are done_issue_infos and done_pull_request_info combined, and if not
-#  raises an error.
 
 
 @lru_cache
@@ -125,7 +120,7 @@ def _graphql_query(item_name: str) -> str:
 class _GraphQlQuery(Enum):
     PROJECTS_IDS = _graphql_query("projects_ids")
     PROJECT_STATE_OPTIONS_IDS = _graphql_query("project_state_options_ids")
-    PROJECT_V_2_ISSUES = _graphql_query("project_v2_issues")
+    PROJECT_V_2_ITEMS = _graphql_query("project_v2_items")
 
     @staticmethod
     def query_for(name: str):
@@ -154,22 +149,22 @@ def _query_nodes_info(
         response = session.post(_GRAPHQL_ENDPOINT, json=json_payload_map)
         response_map = checked_graphql_data_map(response)
         response_info = base_model(**response_map)
-        nodes_info = get_nodes_info_from_response_info(response_info)
-        nodes = nodes_info.nodes
-        page_info = nodes_info.page_info
+        paginated_query_info = get_paginated_query_info_from_response_info(response_info)
+        nodes_info = paginated_query_info.nodes
+        page_info = paginated_query_info.page_info
         after = page_info.endCursor
         has_more_pages = page_info.hasNextPage
-        result.extend(nodes)
+        result.extend(nodes_info)
     return result
 
 
-def get_nodes_info_from_response_info(base_model: BaseModel) -> NodesInfo:
-    if isinstance(base_model, NodesInfo):
+def get_paginated_query_info_from_response_info(base_model: BaseModel) -> PaginatedQueryInfo:
+    if isinstance(base_model, PaginatedQueryInfo):
         return base_model
     for model in base_model.__fields_set__:
         field_value = getattr(base_model, model)
         if isinstance(field_value, BaseModel):
-            page_info = get_nodes_info_from_response_info(field_value)
+            page_info = get_paginated_query_info_from_response_info(field_value)
             if page_info is not None:
                 return page_info
     raise ValueError(f"Could not find nodes info in {base_model}.")

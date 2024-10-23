@@ -17,7 +17,15 @@ query projectV2Issues(
           content {
             ... on Issue {
               number
-              state
+              closed
+              title
+              repository {
+                name
+              }
+            }
+            ... on PullRequest {
+              number
+              closed
               title
               repository {
                 name
