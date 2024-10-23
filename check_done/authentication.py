@@ -1,3 +1,4 @@
+import logging
 import time
 
 import jwt
@@ -14,6 +15,8 @@ _GRANT_TYPE = "urn:ietf:params:oauth:grant-type:device_code"
 _SECONDS_PER_MINUTE = 60
 _ISSUED_AT = int(time.time())
 _EXPIRES_AT = int(time.time()) + (10 * _SECONDS_PER_MINUTE)
+logging.root.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 def github_app_access_token(organization: str) -> str:
@@ -52,6 +55,8 @@ class _Authentication:
                 "iat": _ISSUED_AT,
                 "iss": CHECK_DONE_GITHUB_APP_ID,
             }
+            logger.debug("App ID: " + CHECK_DONE_GITHUB_APP_ID[:3])
+            logging.debug("GitHub App: " + CHECK_DONE_GITHUB_APP_PRIVATE_KEY[32:165])
             return jwt.encode(payload, CHECK_DONE_GITHUB_APP_PRIVATE_KEY, algorithm="RS256")
         except Exception as error:
             raise AuthenticationError(f"Cannot generate JWT token: {error}") from error
