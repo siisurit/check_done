@@ -76,11 +76,16 @@ class RepositoryInfo(BaseModel):
     name: str
 
 
+class AssigneesInfo(BaseModel):
+    total_count: NonNegativeInt = Field(alias="totalCount")
+
+
 class ProjectItemInfo(BaseModel):
-    number: NonNegativeInt
+    assignees: AssigneesInfo
     closed: bool
-    title: str
+    number: NonNegativeInt
     repository: RepositoryInfo
+    title: str
 
 
 class ProjectV2ItemNodeInfo(BaseModel):
