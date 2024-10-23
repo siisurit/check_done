@@ -16,6 +16,9 @@ query projectV2Issues(
           type
           content {
             ... on Issue {
+              assignees {
+                totalCount
+              }
               number
               closed
               title
@@ -24,6 +27,9 @@ query projectV2Issues(
               }
             }
             ... on PullRequest {
+              assignees {
+                totalCount
+              }
               number
               closed
               title
