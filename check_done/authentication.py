@@ -3,7 +3,12 @@ import time
 import jwt
 import requests
 
-from check_done.common import GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, AuthenticationError, HttpBearerAuth
+from check_done.common import (
+    CHECK_DONE_GITHUB_APP_ID,
+    CHECK_DONE_GITHUB_APP_PRIVATE_KEY,
+    AuthenticationError,
+    HttpBearerAuth,
+)
 
 _GRANT_TYPE = "urn:ietf:params:oauth:grant-type:device_code"
 _SECONDS_PER_MINUTE = 60
@@ -45,9 +50,9 @@ class _Authentication:
             payload = {
                 "exp": _EXPIRES_AT,
                 "iat": _ISSUED_AT,
-                "iss": GITHUB_APP_ID,
+                "iss": CHECK_DONE_GITHUB_APP_ID,
             }
-            return jwt.encode(payload, GITHUB_APP_PRIVATE_KEY, algorithm="RS256")
+            return jwt.encode(payload, CHECK_DONE_GITHUB_APP_PRIVATE_KEY, algorithm="RS256")
         except Exception as error:
             raise AuthenticationError(f"Cannot generate JWT token: {error}") from error
 
