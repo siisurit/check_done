@@ -20,6 +20,9 @@ query projectV2Issues(
                 totalCount
               }
               number
+              milestone {
+                id
+              }
               closed
               title
               repository {
@@ -31,6 +34,9 @@ query projectV2Issues(
                 totalCount
               }
               number
+              milestone {
+                id
+              }
               closed
               title
               repository {

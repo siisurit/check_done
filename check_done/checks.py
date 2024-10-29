@@ -36,7 +36,12 @@ def _is_not_assigned(project_item: ProjectItemInfo) -> bool:
     return project_item.assignees.total_count < 1
 
 
+def _has_no_milestone(project_item: ProjectItemInfo) -> bool:
+    return project_item.milestone is None
+
+
 CONDITION_CHECK_AND_WARNING_REASON_LIST = [
     (_is_not_closed, "not closed"),
     (_is_not_assigned, "missing assignee"),
+    (_has_no_milestone, "missing milestone"),
 ]
