@@ -80,11 +80,16 @@ class AssigneesInfo(BaseModel):
     total_count: NonNegativeInt = Field(alias="totalCount")
 
 
+class MilestoneInfo(BaseModel):
+    id: str
+
+
 class ProjectItemInfo(BaseModel):
     assignees: AssigneesInfo
     closed: bool
     number: NonNegativeInt
     repository: RepositoryInfo
+    milestone: MilestoneInfo | None
     title: str
 
 
