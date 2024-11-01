@@ -27,8 +27,8 @@ from check_done.done_project_items_info.info import (
 )
 
 _GRAPHQL_ENDPOINT = "https://api.github.com/graphql"
-_BOARD_URL = config_info().board_url
-ORGANIZATION_NAME, PROJECT_NUMBER = github_organization_name_and_project_number_from_url_if_matches(_BOARD_URL)
+_PROJECT_BOARD_URL = config_info().project_board_url
+ORGANIZATION_NAME, PROJECT_NUMBER = github_organization_name_and_project_number_from_url_if_matches(_PROJECT_BOARD_URL)
 _ACCESS_TOKEN = github_app_access_token(ORGANIZATION_NAME)
 _PATH_TO_QUERIES = Path(__file__).parent.parent / "done_project_items_info" / "queries"
 _MAX_ENTRIES_PER_PAGE = 100

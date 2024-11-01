@@ -10,10 +10,6 @@ from pydantic import BaseModel, field_validator
 from requests.auth import AuthBase
 
 load_dotenv()
-_ENVVAR_CHECK_DONE_GITHUB_APP_ID = "CHECK_DONE_GITHUB_APP_ID"
-_ENVVAR_CHECK_DONE_GITHUB_APP_PRIVATE_KEY = "CHECK_DONE_GITHUB_APP_PRIVATE_KEY"
-CHECK_DONE_GITHUB_APP_ID = os.environ.get(_ENVVAR_CHECK_DONE_GITHUB_APP_ID)
-CHECK_DONE_GITHUB_APP_PRIVATE_KEY = os.environ.get(_ENVVAR_CHECK_DONE_GITHUB_APP_PRIVATE_KEY)
 
 _GITHUB_ORGANIZATION_NAME_AND_PROJECT_NUMBER_URL_REGEX = re.compile(
     r"https://github\.com/orgs/(?P<organization_name>[a-zA-Z0-9\-]+)/projects/(?P<project_number>[0-9]+).*"
@@ -22,20 +18,21 @@ _CONFIG_PATH = Path(__file__).parent.parent / "data" / ".check_done.yaml"
 
 
 class _ConfigInfo(BaseModel):
-    board_url: str
-    api_key: str
+    project_board_url: str
+    check_done_github_app_id: str
+    check_done_github_app_private_key: str
 
-    @field_validator("api_key", mode="before")
-    def api_key_from_env(cls, api_key: Any | None):
-        if isinstance(api_key, str):
-            stripped_api_key = api_key.strip()
+    @field_validator("check_done_github_app_id", "check_done_github_app_private_key", mode="before")
+    def value_from_env(cls, value: Any | None):
+        if isinstance(value, str):
+            stripped_value = value.strip()
             result = (
-                resolved_environment_variables(api_key)
-                if stripped_api_key.startswith("${") and stripped_api_key.endswith("}")
-                else stripped_api_key
+                resolved_environment_variables(value)
+                if stripped_value.startswith("${") and stripped_value.endswith("}")
+                else stripped_value
             )
         else:
-            result = api_key
+            result = value
         return result
 
 
