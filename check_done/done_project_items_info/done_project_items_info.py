@@ -11,25 +11,34 @@ from requests import HTTPError, Response, Session
 
 from check_done.authentication import github_app_access_token
 from check_done.common import (
+    CHECK_DONE_GITHUB_PERSONAL_ACCESS_TOKEN,
     HttpBearerAuth,
+    ProjectOwnerType,
     config_info,
-    github_organization_name_and_project_number_from_url_if_matches,
+    github_project_owner_type_and_project_owner_name_and_project_number_from_url_if_matches,
 )
 from check_done.done_project_items_info.info import (
     GithubContentType,
     NodeByIdInfo,
-    OrganizationInfo,
     PaginatedQueryInfo,
     ProjectItemInfo,
+    ProjectOwnerInfo,
     ProjectV2ItemNodeInfo,
     ProjectV2NodeInfo,
     ProjectV2SingleSelectFieldNodeInfo,
 )
 
 _GRAPHQL_ENDPOINT = "https://api.github.com/graphql"
-_PROJECT_BOARD_URL = config_info().project_board_url
-ORGANIZATION_NAME, PROJECT_NUMBER = github_organization_name_and_project_number_from_url_if_matches(_PROJECT_BOARD_URL)
-_ACCESS_TOKEN = github_app_access_token(ORGANIZATION_NAME)
+_PROJECT_BOARD_URL = config_info().project_url
+_PROJECT_OWNER_TYPE, _PROJECT_OWNER_NAME, PROJECT_NUMBER = (
+    github_project_owner_type_and_project_owner_name_and_project_number_from_url_if_matches(_PROJECT_BOARD_URL)
+)
+_IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION = ProjectOwnerType.Organization == _PROJECT_OWNER_TYPE
+_ACCESS_TOKEN = (
+    github_app_access_token(_PROJECT_OWNER_NAME)
+    if _IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION
+    else CHECK_DONE_GITHUB_PERSONAL_ACCESS_TOKEN
+)
 _PATH_TO_QUERIES = Path(__file__).parent.parent / "done_project_items_info" / "queries"
 _MAX_ENTRIES_PER_PAGE = 100
 _GITHUB_PROJECT_STATUS_FIELD_NAME = "Status"
@@ -41,7 +50,12 @@ def done_project_items_info() -> list[ProjectItemInfo]:
     session.headers = {"Accept": "application/vnd.github+json"}
     session.auth = HttpBearerAuth(_ACCESS_TOKEN)
 
-    projects_ids_nodes_info = _query_nodes_info(OrganizationInfo, _GraphQlQuery.PROJECTS_IDS.name, session)
+    projects_ids_query_name = (
+        _GraphQlQuery.ORGANIZATION_PROJECTS_IDS.name
+        if _IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION
+        else _GraphQlQuery.USER_PROJECTS_IDS.name
+    )
+    projects_ids_nodes_info = _query_nodes_info(ProjectOwnerInfo, projects_ids_query_name, session)
     project_id = matching_project_id(projects_ids_nodes_info)
 
     last_project_state_option_ids_nodes_info = _query_nodes_info(
@@ -61,7 +75,7 @@ def matching_project_id(node_infos: list[ProjectV2NodeInfo]) -> str:
         return next(str(project_node.id) for project_node in node_infos if project_node.number == PROJECT_NUMBER)
     except StopIteration as error:
         raise ValueError(
-            f"Cannot find a project with number '{PROJECT_NUMBER}', in the GitHub organization '{ORGANIZATION_NAME}'."
+            f"Cannot find a project with number '{PROJECT_NUMBER}', owned by '{_PROJECT_OWNER_NAME}'."
         ) from error
 
 
@@ -81,7 +95,7 @@ def matching_last_project_state_option_id(node_infos: list[ProjectV2SingleSelect
     except StopIteration as error:
         raise ValueError(
             f"Cannot find the project status selection field in the GitHub project with number `{PROJECT_NUMBER}` "
-            f"on the `{ORGANIZATION_NAME}` organization."
+            f"owned by `{_PROJECT_OWNER_NAME}`."
         ) from error
 
 
@@ -97,7 +111,7 @@ def filtered_project_item_infos_by_done_status(
     if len(result) < 1:
         logger.warning(
             f"No project items found with the last project status option selected in the GitHub project with number "
-            f"`{PROJECT_NUMBER}` in organization '{ORGANIZATION_NAME}'"
+            f"`{PROJECT_NUMBER}` owned by '{_PROJECT_OWNER_NAME}'"
         )
     return result
 
@@ -118,7 +132,8 @@ def _graphql_query(item_name: str) -> str:
 
 
 class _GraphQlQuery(Enum):
-    PROJECTS_IDS = _graphql_query("projects_ids")
+    ORGANIZATION_PROJECTS_IDS = _graphql_query("organization_projects_ids")
+    USER_PROJECTS_IDS = _graphql_query("user_projects_ids")
     PROJECT_STATE_OPTIONS_IDS = _graphql_query("project_state_options_ids")
     PROJECT_V_2_ITEMS = _graphql_query("project_v2_items")
 
@@ -133,7 +148,7 @@ def _query_nodes_info(
     base_model: type[BaseModel], query_name: str, session: Session, project_id: str | None = None
 ) -> list:
     result = []
-    variables = {"login": ORGANIZATION_NAME, "maxEntriesPerPage": _MAX_ENTRIES_PER_PAGE}
+    variables = {"login": _PROJECT_OWNER_NAME, "maxEntriesPerPage": _MAX_ENTRIES_PER_PAGE}
     if project_id is not None:
         variables["projectId"] = project_id
     after = None

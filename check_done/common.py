@@ -1,6 +1,7 @@
 import os
 import re
 import string
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -10,19 +11,24 @@ from pydantic import BaseModel, field_validator
 from requests.auth import AuthBase
 
 load_dotenv()
+_ENVVAR_CHECK_DONE_GITHUB_PERSONAL_ACCESS_TOKEN = "CHECK_DONE_GITHUB_PERSONAL_ACCESS_TOKEN"
+CHECK_DONE_GITHUB_PERSONAL_ACCESS_TOKEN = os.environ.get(_ENVVAR_CHECK_DONE_GITHUB_PERSONAL_ACCESS_TOKEN)
 
+_CONFIG_PATH = Path(__file__).parent.parent / "data" / ".check_done.yaml"
 _GITHUB_ORGANIZATION_NAME_AND_PROJECT_NUMBER_URL_REGEX = re.compile(
     r"https://github\.com/orgs/(?P<organization_name>[a-zA-Z0-9\-]+)/projects/(?P<project_number>[0-9]+).*"
 )
-_CONFIG_PATH = Path(__file__).parent.parent / "data" / ".check_done.yaml"
+_GITHUB_USER_NAME_AND_PROJECT_NUMBER_URL_REGEX = re.compile(
+    r"https://github\.com/users/(?P<user_name>[a-zA-Z0-9\-]+)/projects/(?P<project_number>[0-9]+).*"
+)
 
 
 class _ConfigInfo(BaseModel):
-    project_board_url: str
+    project_url: str
     check_done_github_app_id: str
     check_done_github_app_private_key: str
 
-    @field_validator("check_done_github_app_id", "check_done_github_app_private_key", mode="before")
+    @field_validator("project_url", "check_done_github_app_id", "check_done_github_app_private_key", mode="before")
     def value_from_env(cls, value: Any | None):
         if isinstance(value, str):
             stripped_value = value.strip()
@@ -41,13 +47,27 @@ def config_info() -> _ConfigInfo:
     return _ConfigInfo(**config_map)
 
 
-def github_organization_name_and_project_number_from_url_if_matches(url: str) -> tuple[str, int]:
+class ProjectOwnerType(StrEnum):
+    User = "users"
+    Organization = "orgs"
+
+
+def github_project_owner_type_and_project_owner_name_and_project_number_from_url_if_matches(
+    url: str,
+) -> tuple[ProjectOwnerType, str, int]:
     organization_name_and_project_number_match = _GITHUB_ORGANIZATION_NAME_AND_PROJECT_NUMBER_URL_REGEX.match(url)
     if organization_name_and_project_number_match is None:
-        raise ValueError(f"Cannot parse GitHub organization name and project number from URL: {url}.")
-    organization_name = organization_name_and_project_number_match.group("organization_name")
-    project_number = int(organization_name_and_project_number_match.group("project_number"))
-    return organization_name, project_number
+        user_name_and_project_number_match = _GITHUB_USER_NAME_AND_PROJECT_NUMBER_URL_REGEX.match(url)
+        if organization_name_and_project_number_match is None and user_name_and_project_number_match is None:
+            raise ValueError(f"Cannot parse GitHub organization or user name, and project number from URL: {url}.")
+        project_owner_type = ProjectOwnerType.User
+        project_owner_name = user_name_and_project_number_match.group("user_name")
+        project_number = int(user_name_and_project_number_match.group("project_number"))
+    else:
+        project_owner_type = ProjectOwnerType.Organization
+        project_owner_name = organization_name_and_project_number_match.group("organization_name")
+        project_number = int(organization_name_and_project_number_match.group("project_number"))
+    return project_owner_type, project_owner_name, project_number
 
 
 def resolved_environment_variables(value: str, fail_on_missing_envvar=True) -> str:

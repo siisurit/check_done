@@ -1,5 +1,9 @@
-query projectsIds($login: String!, $maxEntriesPerPage: Int!, $after: String) {
-  organization(login: $login) {
+query userProjectsIds(
+  $login: String!
+  $maxEntriesPerPage: Int!
+  $after: String
+) {
+  user(login: $login) {
     projectsV2(
       first: $maxEntriesPerPage
       after: $after

@@ -5,8 +5,9 @@ import pytest
 import yaml
 
 from check_done.common import (
+    ProjectOwnerType,
     config_map_from_yaml_file,
-    github_organization_name_and_project_number_from_url_if_matches,
+    github_project_owner_type_and_project_owner_name_and_project_number_from_url_if_matches,
     resolved_environment_variables,
 )
 
@@ -68,18 +69,30 @@ def test_fails_to_resolve_environment_variables_with_syntax_error():
         resolved_environment_variables("${")
 
 
-def test_can_extract_github_organization_name_and_project_number_from_url():
-    assert github_organization_name_and_project_number_from_url_if_matches(
+def test_can_extract_github_project_owner_type_and_project_owner_name_and_project_number_from_url():
+    assert github_project_owner_type_and_project_owner_name_and_project_number_from_url_if_matches(
         "https://github.com/orgs/example-org/projects/1"
-    ) == ("example-org", 1)
+    ) == (ProjectOwnerType.Organization, "example-org", 1)
+    assert github_project_owner_type_and_project_owner_name_and_project_number_from_url_if_matches(
+        "https://github.com/orgs/example-org/projects/1/some-other-stuff"
+    ) == (ProjectOwnerType.Organization, "example-org", 1)
+    assert github_project_owner_type_and_project_owner_name_and_project_number_from_url_if_matches(
+        "https://github.com/users/example-username/projects/1"
+    ) == (ProjectOwnerType.User, "example-username", 1)
+    assert github_project_owner_type_and_project_owner_name_and_project_number_from_url_if_matches(
+        "https://github.com/users/example-username/projects/1/some-other-stuff"
+    ) == (ProjectOwnerType.User, "example-username", 1)
 
 
-def test_fails_to_extract_github_organization_name_and_project_number_from_url():
+def test_fails_to_extract_github_project_owner_type_and_project_owner_name_and_project_number_from_url():
     urls = [
         "https://github.com/orgs/",
+        "https://github.com/users/",
         "https://github.com/orgs/example-org/projects/",
+        "https://github.com/users/example-username/projects/",
         "",
     ]
     for url in urls:
-        with pytest.raises(ValueError, match=r"Cannot parse GitHub organization name and project number from URL: .*"):
-            github_organization_name_and_project_number_from_url_if_matches(url)
+        expected_error_message = rf"Cannot parse GitHub organization or user name, and project number from URL: {url}."
+        with pytest.raises(ValueError, match=expected_error_message):
+            github_project_owner_type_and_project_owner_name_and_project_number_from_url_if_matches(url)
