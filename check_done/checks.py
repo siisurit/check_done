@@ -1,3 +1,5 @@
+from html.parser import HTMLParser
+
 from check_done.done_project_items_info.done_project_items_info import done_project_items_info
 from check_done.done_project_items_info.info import ProjectItemInfo
 
@@ -33,15 +35,38 @@ def _is_not_closed(project_item: ProjectItemInfo) -> bool:
 
 
 def _is_not_assigned(project_item: ProjectItemInfo) -> bool:
-    return project_item.assignees.total_count < 1
+    return project_item.assignees.total_count == 0
 
 
 def _has_no_milestone(project_item: ProjectItemInfo) -> bool:
     return project_item.milestone is None
 
 
+def has_unfinished_goals(project_item: ProjectItemInfo) -> bool:
+    class _GoalsHTMLParser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.is_any_goal_unchecked = False
+
+        def handle_starttag(self, tag, attrs):
+            if tag == "input":
+                attr_dict = dict(attrs)
+                is_checkbox = attr_dict.get("type") == "checkbox"
+                is_unchecked = "checked" not in attr_dict
+                if is_checkbox and is_unchecked:
+                    self.is_any_goal_unchecked = True
+
+        def has_unfinished_goals(self):
+            return self.is_any_goal_unchecked
+
+    parser = _GoalsHTMLParser()
+    parser.feed(project_item.body_html)
+    return parser.has_unfinished_goals()
+
+
 CONDITION_CHECK_AND_WARNING_REASON_LIST = [
     (_is_not_closed, "not closed"),
     (_is_not_assigned, "missing assignee"),
     (_has_no_milestone, "missing milestone"),
+    (has_unfinished_goals, "missing finished goals"),
 ]

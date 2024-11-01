@@ -19,6 +19,7 @@ query projectV2Issues(
               assignees {
                 totalCount
               }
+              bodyHTML
               number
               milestone {
                 id
@@ -33,6 +34,7 @@ query projectV2Issues(
               assignees {
                 totalCount
               }
+              bodyHTML
               number
               milestone {
                 id

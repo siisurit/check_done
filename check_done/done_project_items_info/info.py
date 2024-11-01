@@ -86,6 +86,7 @@ class MilestoneInfo(BaseModel):
 
 class ProjectItemInfo(BaseModel):
     assignees: AssigneesInfo
+    body_html: str = Field(alias="bodyHTML", default=None)
     closed: bool
     number: NonNegativeInt
     repository: RepositoryInfo
