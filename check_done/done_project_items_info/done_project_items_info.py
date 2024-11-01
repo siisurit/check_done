@@ -68,7 +68,7 @@ def matching_project_id(node_infos: list[ProjectV2NodeInfo]) -> str:
 def matching_last_project_state_option_id(node_infos: list[ProjectV2SingleSelectFieldNodeInfo]) -> str:
     try:
         return next(
-            # TODO: Ponder giving the user the option to pick which project state option instead of picking
+            # TODO#13: Ponder giving the user the option to pick which project state option instead of picking
             #  the last one.
             #  Take into consideration that the GraphQL query allows for filtering the status options by name,
             #  which is interesting when there are emoji's in the name like in the case of Siisurit...
