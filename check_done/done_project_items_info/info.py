@@ -20,6 +20,7 @@ class ProjectItemState(StrEnum):
 
 class GithubContentType(StrEnum):
     ISSUE = "ISSUE"
+    DRAFT_ISSUE = "DRAFT_ISSUE"
     PULL_REQUEST = "PULL_REQUEST"
 
 
@@ -93,9 +94,9 @@ class LinkedProjectItemInfo(BaseModel):
     nodes: list[LinkedProjectItemNodeInfo]
 
 
-# NOTE: For simplicity, both issues and pull requests are treated the same under a generic "project item" type,
-#  since all their underlying properties needed for checking are essentially identical,
-#  there is no value in differentiating between them as long as this continues to be the case.
+# NOTE: For simplicity, both issues and pull requests are treated the same under a generic "project item" type.
+#  Since all their underlying properties needed for checking are essentially identical,
+#  there is no value in differentiating between them as long as the above continues to be the case.
 class ProjectItemInfo(BaseModel):
     """A generic type representing both issues and pull requests in a project board."""
 
@@ -129,8 +130,14 @@ class _ProjectsV2Info(BaseModel):
     projects_v2: PaginatedQueryInfo = Field(alias="projectsV2")
 
 
-class OrganizationInfo(BaseModel):
-    organization: _ProjectsV2Info
+class ProjectOwnerInfo(BaseModel):
+    """
+    A generic type representing the project owner whether they are an organization or user.
+    The difference between organization and user is irrelevant in check_done's case,
+    as we are only using the project owner to retrieve the projects ID's.
+    """
+
+    project_owner: _ProjectsV2Info = Field(validation_alias=AliasChoices("organization", "user"))
 
 
 class _NodeTypeName(StrEnum):
