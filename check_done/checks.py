@@ -64,9 +64,14 @@ def has_unfinished_goals(project_item: ProjectItemInfo) -> bool:
     return parser.has_unfinished_goals()
 
 
+def _is_missing_linked_project_item(project_item: ProjectItemInfo) -> bool:
+    return len(project_item.linked_project_item.nodes) == 0
+
+
 CONDITION_CHECK_AND_WARNING_REASON_LIST = [
     (_is_not_closed, "not closed"),
     (_is_not_assigned, "missing assignee"),
     (_has_no_milestone, "missing milestone"),
     (has_unfinished_goals, "missing finished goals"),
+    (_is_missing_linked_project_item, "missing linked project item"),
 ]

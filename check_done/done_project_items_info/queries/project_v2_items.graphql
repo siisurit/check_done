@@ -24,6 +24,12 @@ query projectV2Issues(
               milestone {
                 id
               }
+              closedByPullRequestsReferences(first: 1) {
+                nodes {
+                  number
+                  title
+                }
+              }
               closed
               title
               repository {
@@ -38,6 +44,12 @@ query projectV2Issues(
               number
               milestone {
                 id
+              }
+              closingIssuesReferences(first: 1) {
+                nodes {
+                  number
+                  title
+                }
               }
               closed
               title

@@ -1,7 +1,7 @@
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, NonNegativeInt, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, NonNegativeInt, field_validator
 
 
 class NodesTypeName(StrEnum):
@@ -84,7 +84,21 @@ class MilestoneInfo(BaseModel):
     id: str
 
 
+class LinkedProjectItemNodeInfo(BaseModel):
+    number: NonNegativeInt
+    title: str
+
+
+class LinkedProjectItemInfo(BaseModel):
+    nodes: list[LinkedProjectItemNodeInfo]
+
+
+# NOTE: For simplicity, both issues and pull requests are treated the same under a generic "project item" type,
+#  since all their underlying properties needed for checking are essentially identical,
+#  there is no value in differentiating between them as long as this continues to be the case.
 class ProjectItemInfo(BaseModel):
+    """A generic type representing both issues and pull requests in a project board."""
+
     assignees: AssigneesInfo
     body_html: str = Field(alias="bodyHTML", default=None)
     closed: bool
@@ -92,6 +106,11 @@ class ProjectItemInfo(BaseModel):
     repository: RepositoryInfo
     milestone: MilestoneInfo | None
     title: str
+    linked_project_item: LinkedProjectItemInfo = Field(
+        validation_alias=AliasChoices(
+            "closedByPullRequestsReferences", "closingIssuesReferences", "linked_project_item"
+        )
+    )
 
 
 class ProjectV2ItemNodeInfo(BaseModel):

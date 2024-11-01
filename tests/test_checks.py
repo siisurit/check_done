@@ -1,5 +1,11 @@
 from check_done.checks import has_unfinished_goals
-from check_done.done_project_items_info.info import AssigneesInfo, MilestoneInfo, ProjectItemInfo, RepositoryInfo
+from check_done.done_project_items_info.info import (
+    AssigneesInfo,
+    LinkedProjectItemInfo,
+    MilestoneInfo,
+    ProjectItemInfo,
+    RepositoryInfo,
+)
 
 
 def test_can_check_for_unfinished_goals():
@@ -22,6 +28,7 @@ def test_can_check_for_unfinished_goals():
         repository=RepositoryInfo(name="test_repo"),
         milestone=MilestoneInfo(id="1"),
         title="Test",
+        linked_project_item=LinkedProjectItemInfo(nodes=[]),
     )
     html_with_an_finished_goals = """
     <h2 dir="auto">Goals</h2>
@@ -42,6 +49,7 @@ def test_can_check_for_unfinished_goals():
         repository=RepositoryInfo(name="test_repo"),
         milestone=MilestoneInfo(id="1"),
         title="Test",
+        linked_project_item=LinkedProjectItemInfo(nodes=[]),
     )
     empty_html_body = ""
     project_item_with_empty_html_body = ProjectItemInfo(
@@ -52,6 +60,7 @@ def test_can_check_for_unfinished_goals():
         repository=RepositoryInfo(name="test_repo"),
         milestone=MilestoneInfo(id="1"),
         title="Test",
+        linked_project_item=LinkedProjectItemInfo(nodes=[]),
     )
 
     assert has_unfinished_goals(project_item_with_unfinished_goals) is True
