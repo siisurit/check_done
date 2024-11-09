@@ -16,6 +16,7 @@ query projectV2Issues(
           type
           content {
             ... on Issue {
+              __typename
               assignees {
                 totalCount
               }
@@ -24,12 +25,6 @@ query projectV2Issues(
               milestone {
                 id
               }
-              closedByPullRequestsReferences(first: 1) {
-                nodes {
-                  number
-                  title
-                }
-              }
               closed
               title
               repository {
@@ -37,6 +32,7 @@ query projectV2Issues(
               }
             }
             ... on PullRequest {
+              __typename
               assignees {
                 totalCount
               }

@@ -4,29 +4,25 @@ import pytest
 from pydantic import BaseModel
 from requests import HTTPError, Response
 
-from check_done.done_project_items_info.done_project_items_info import (
+from check_done.done_project_items_info import (
     PROJECT_NUMBER,
     GraphQlError,
     checked_graphql_data_map,
     done_project_items_info,
     filtered_project_item_infos_by_done_status,
     get_paginated_query_info_from_response_info,
-    matching_last_project_state_option_id,
     matching_project_id,
+    matching_project_state_option_id,
     minimized_graphql,
 )
-from check_done.done_project_items_info.info import (
-    GithubContentType,
+from check_done.info import (
     PageInfo,
     PaginatedQueryInfo,
-    ProjectItemInfo,
-    ProjectV2ItemNodeInfo,
-    ProjectV2ItemProjectStatusInfo,
     ProjectV2NodeInfo,
     ProjectV2Options,
     ProjectV2SingleSelectFieldNodeInfo,
-    RepositoryInfo,
 )
+from tests._common import mock_project_v2_item_node_info
 
 
 @pytest.mark.parametrize(
@@ -91,7 +87,6 @@ def test_can_check_graphql_data_map():
 
 def test_fails_to_check_graphql_data_map_on_http_error():
     mock_resp = _mock_response(raise_for_status=HTTPError("HTTP error"))
-
     with pytest.raises(GraphQlError, match="HTTP error"):
         checked_graphql_data_map(mock_resp)
 
@@ -142,8 +137,9 @@ def test_can_get_done_project_items_info():
 
 def test_can_find_matching_project_id_from_node_infos():
     _matching_project_id = "b2"
+    _another_project_number = 256
     _mock_project_id_node_infos = [
-        ProjectV2NodeInfo(id="a1", number=1, __typename="ProjectV2"),
+        ProjectV2NodeInfo(id="a1", number=_another_project_number, __typename="ProjectV2"),
         ProjectV2NodeInfo(id=_matching_project_id, number=PROJECT_NUMBER, __typename="ProjectV2"),
     ]
 
@@ -152,11 +148,57 @@ def test_can_find_matching_project_id_from_node_infos():
 
 
 def test_fails_to_find_matching_project_id_from_node_infos():
+    _another_project_number = 256
     _mock_project_id_node_infos = [
-        ProjectV2NodeInfo(id="a1", number=1, __typename="ProjectV2"),
+        ProjectV2NodeInfo(id="a1", number=_another_project_number, __typename="ProjectV2"),
     ]
     with pytest.raises(ValueError, match=f"Cannot find a project with number '{PROJECT_NUMBER}'"):
         matching_project_id(_mock_project_id_node_infos)
+
+
+def test_can_find_matching_project_state_option_id_from_name():
+    _mock_matching_project_state_option_id = "2b"
+    _mock_matching_project_state_option_name = "Finished"
+    _mock_last_project_state_option_id_node_infos = [
+        ProjectV2SingleSelectFieldNodeInfo(
+            id="a1",
+            name="Status",
+            __typename="ProjectV2SingleSelectField",
+            options=[
+                ProjectV2Options(id="1a", name="In Progress"),
+                ProjectV2Options(
+                    id=_mock_matching_project_state_option_id, name=_mock_matching_project_state_option_name
+                ),
+            ],
+        )
+    ]
+    _matching_project_state_option_id = matching_project_state_option_id(
+        _mock_last_project_state_option_id_node_infos, _mock_matching_project_state_option_name
+    )
+    assert _matching_project_state_option_id == _mock_matching_project_state_option_id
+
+
+def test_fails_to_find_matching_project_state_option_id_from_name():
+    _wrongly_assumed_matching_project_state_option_name = "Done"
+    _actual_matching_project_state_option_name = "Finished"
+    _mock_last_project_state_option_id_node_infos = [
+        ProjectV2SingleSelectFieldNodeInfo(
+            id="a1",
+            name="Status",
+            __typename="ProjectV2SingleSelectField",
+            options=[
+                ProjectV2Options(id="1a", name="In Progress"),
+                ProjectV2Options(id="2b", name=_actual_matching_project_state_option_name),
+            ],
+        )
+    ]
+    with pytest.raises(
+        ValueError,
+        match=f"Cannot find the project status matching name '{_wrongly_assumed_matching_project_state_option_name}' ",
+    ):
+        _matching_project_state_option_id = matching_project_state_option_id(
+            _mock_last_project_state_option_id_node_infos, _wrongly_assumed_matching_project_state_option_name
+        )
 
 
 def test_can_find_matching_last_project_state_option_id():
@@ -172,8 +214,8 @@ def test_can_find_matching_last_project_state_option_id():
             ],
         )
     ]
-    _matching_last_project_state_option_id = matching_last_project_state_option_id(
-        _mock_last_project_state_option_id_node_infos
+    _matching_last_project_state_option_id = matching_project_state_option_id(
+        _mock_last_project_state_option_id_node_infos, None
     )
     assert _matching_last_project_state_option_id == _mock_matching_last_project_state_option_id
 
@@ -184,60 +226,20 @@ def test_fails_to_find_matching_last_project_state_option_id():
             id="a1", name="Milestone", __typename="ProjectV2SingleSelectField", options=[]
         )
     ]
-    with pytest.raises(ValueError, match="Cannot find the project status selection field "):
-        _matching_last_project_state_option_id = matching_last_project_state_option_id(
-            _mock_last_project_state_option_id_node_infos
+    with pytest.raises(ValueError, match="Cannot find a project status selection field "):
+        _matching_last_project_state_option_id = matching_project_state_option_id(
+            _mock_last_project_state_option_id_node_infos, None
         )
 
 
-def test_can_get_filtered_project_item_infos_by_done_status():
+def test_can_get_filtered_project_item_infos_with_done_status():
     _in_progress_project_status_id = "a1"
     _done_project_status_id = "b2"
     _mocked_done_issues_node_infos = [
-        ProjectV2ItemNodeInfo(
-            type=GithubContentType.ISSUE,
-            content=ProjectItemInfo(
-                number=1,
-                closed=False,
-                title="Do something",
-                repository=RepositoryInfo(name="my_repo"),
-            ),
-            fieldValueByName=ProjectV2ItemProjectStatusInfo(
-                status="In Progress", optionId=_in_progress_project_status_id
-            ),
-        ),
-        ProjectV2ItemNodeInfo(
-            type=GithubContentType.ISSUE,
-            content=ProjectItemInfo(
-                number=2,
-                closed=True,
-                title="Do something else",
-                repository=RepositoryInfo(name="my_repo"),
-            ),
-            fieldValueByName=ProjectV2ItemProjectStatusInfo(status="Done", optionId=_done_project_status_id),
-        ),
-        ProjectV2ItemNodeInfo(
-            type=GithubContentType.PULL_REQUEST,
-            content=ProjectItemInfo(
-                number=3,
-                closed=False,
-                title="#1 Do something",
-                repository=RepositoryInfo(name="my_repo"),
-            ),
-            fieldValueByName=ProjectV2ItemProjectStatusInfo(
-                status="In Progress", optionId=_in_progress_project_status_id
-            ),
-        ),
-        ProjectV2ItemNodeInfo(
-            type=GithubContentType.PULL_REQUEST,
-            content=ProjectItemInfo(
-                number=4,
-                closed=True,
-                title="#2 Do something else",
-                repository=RepositoryInfo(name="my_repo"),
-            ),
-            fieldValueByName=ProjectV2ItemProjectStatusInfo(status="Done", optionId=_done_project_status_id),
-        ),
+        mock_project_v2_item_node_info(option_id=_in_progress_project_status_id, closed=True),
+        mock_project_v2_item_node_info(option_id=_in_progress_project_status_id, closed=False),
+        mock_project_v2_item_node_info(option_id=_done_project_status_id, closed=True),
+        mock_project_v2_item_node_info(option_id=_done_project_status_id, closed=False),
     ]
     _done_issue_infos = filtered_project_item_infos_by_done_status(
         _mocked_done_issues_node_infos, _done_project_status_id
@@ -248,18 +250,7 @@ def test_can_get_filtered_project_item_infos_by_done_status():
 def test_fails_to_find_any_filtered_project_item_infos_by_done_status(caplog):
     _matching_project_id = "a1"
     _other_project_id = "b2"
-    _mocked_done_issues_node_infos = [
-        ProjectV2ItemNodeInfo(
-            type=GithubContentType.ISSUE,
-            content=ProjectItemInfo(
-                number=1,
-                closed=False,
-                title="Do something",
-                repository=RepositoryInfo(name="my_repo"),
-            ),
-            fieldValueByName=ProjectV2ItemProjectStatusInfo(status="In Progress", optionId=_other_project_id),
-        )
-    ]
+    _mocked_done_issues_node_infos = [mock_project_v2_item_node_info(option_id=_other_project_id)]
 
     _done_issue_infos = filtered_project_item_infos_by_done_status(_mocked_done_issues_node_infos, _matching_project_id)
     assert len(_done_issue_infos) < 1

@@ -9,16 +9,14 @@ import requests
 from pydantic import BaseModel
 from requests import HTTPError, Response, Session
 
-from check_done.authentication import github_app_access_token
 from check_done.common import (
-    CHECK_DONE_GITHUB_PERSONAL_ACCESS_TOKEN,
     HttpBearerAuth,
-    ProjectOwnerType,
-    config_info,
-    github_project_owner_type_and_project_owner_name_and_project_number_from_url_if_matches,
+    configuration_info,
 )
-from check_done.done_project_items_info.info import (
-    GithubContentType,
+from check_done.info import (
+    IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION,
+    PROJECT_NUMBER,
+    PROJECT_OWNER_NAME,
     NodeByIdInfo,
     PaginatedQueryInfo,
     ProjectItemInfo,
@@ -27,19 +25,16 @@ from check_done.done_project_items_info.info import (
     ProjectV2NodeInfo,
     ProjectV2SingleSelectFieldNodeInfo,
 )
+from check_done.organization_authentication import access_token_from_organization
 
 _GRAPHQL_ENDPOINT = "https://api.github.com/graphql"
-_PROJECT_BOARD_URL = config_info().project_url
-_PROJECT_OWNER_TYPE, _PROJECT_OWNER_NAME, PROJECT_NUMBER = (
-    github_project_owner_type_and_project_owner_name_and_project_number_from_url_if_matches(_PROJECT_BOARD_URL)
+_PROJECT_STATUS_NAME_TO_CHECK = configuration_info().project_status_name_to_check
+_PERSONAL_ACCESS_TOKEN = configuration_info().personal_access_token
+_ORGANIZATION_ACCESS_TOKEN = (
+    access_token_from_organization(PROJECT_OWNER_NAME) if IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION else None
 )
-_IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION = ProjectOwnerType.Organization == _PROJECT_OWNER_TYPE
-_ACCESS_TOKEN = (
-    github_app_access_token(_PROJECT_OWNER_NAME)
-    if _IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION
-    else CHECK_DONE_GITHUB_PERSONAL_ACCESS_TOKEN
-)
-_PATH_TO_QUERIES = Path(__file__).parent.parent / "done_project_items_info" / "queries"
+_ACCESS_TOKEN = _ORGANIZATION_ACCESS_TOKEN or _PERSONAL_ACCESS_TOKEN
+_PATH_TO_QUERIES = Path(__file__).parent / "queries"
 _MAX_ENTRIES_PER_PAGE = 100
 _GITHUB_PROJECT_STATUS_FIELD_NAME = "Status"
 logger = logging.getLogger(__name__)
@@ -52,7 +47,7 @@ def done_project_items_info() -> list[ProjectItemInfo]:
 
     projects_ids_query_name = (
         _GraphQlQuery.ORGANIZATION_PROJECTS_IDS.name
-        if _IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION
+        if IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION
         else _GraphQlQuery.USER_PROJECTS_IDS.name
     )
     projects_ids_nodes_info = _query_nodes_info(ProjectOwnerInfo, projects_ids_query_name, session)
@@ -61,7 +56,9 @@ def done_project_items_info() -> list[ProjectItemInfo]:
     last_project_state_option_ids_nodes_info = _query_nodes_info(
         NodeByIdInfo, _GraphQlQuery.PROJECT_STATE_OPTIONS_IDS.name, session, project_id
     )
-    last_project_state_option_id = matching_last_project_state_option_id(last_project_state_option_ids_nodes_info)
+    last_project_state_option_id = matching_project_state_option_id(
+        last_project_state_option_ids_nodes_info, _PROJECT_STATUS_NAME_TO_CHECK
+    )
 
     project_items_nodes_info = _query_nodes_info(
         NodeByIdInfo, _GraphQlQuery.PROJECT_V_2_ITEMS.name, session, project_id
@@ -75,28 +72,43 @@ def matching_project_id(node_infos: list[ProjectV2NodeInfo]) -> str:
         return next(str(project_node.id) for project_node in node_infos if project_node.number == PROJECT_NUMBER)
     except StopIteration as error:
         raise ValueError(
-            f"Cannot find a project with number '{PROJECT_NUMBER}', owned by '{_PROJECT_OWNER_NAME}'."
+            f"Cannot find a project with number '{PROJECT_NUMBER}', owned by '{PROJECT_OWNER_NAME}'."
         ) from error
 
 
-def matching_last_project_state_option_id(node_infos: list[ProjectV2SingleSelectFieldNodeInfo]) -> str:
-    try:
-        return next(
-            # TODO#13: Ponder giving the user the option to pick which project state option instead of picking
-            #  the last one.
-            #  Take into consideration that the GraphQL query allows for filtering the status options by name,
-            #  which is interesting when there are emoji's in the name like in the case of Siisurit...
-            #  To help with that, if the script can't find the name the user gave, a list of the options can be
-            #  shown to them.
-            project_state_node.options[-1].id
-            for project_state_node in node_infos
-            if project_state_node.name is not None and project_state_node.name == _GITHUB_PROJECT_STATUS_FIELD_NAME
-        )
-    except StopIteration as error:
-        raise ValueError(
-            f"Cannot find the project status selection field in the GitHub project with number `{PROJECT_NUMBER}` "
-            f"owned by `{_PROJECT_OWNER_NAME}`."
-        ) from error
+def matching_project_state_option_id(
+    node_infos: list[ProjectV2SingleSelectFieldNodeInfo], project_status_name_to_check: str | None
+) -> str:
+    if project_status_name_to_check is not None:
+        try:
+            result = next(
+                option.id
+                for project_state_node in node_infos
+                for option in project_state_node.options
+                if project_status_name_to_check in option.name
+            )
+        except StopIteration as error:
+            status_options_names = [
+                option.name for project_state_node in node_infos for option in project_state_node.options
+            ]
+            raise ValueError(
+                f"Cannot find the project status matching name '{_PROJECT_STATUS_NAME_TO_CHECK}' "
+                f"in the GitHub project with number `{PROJECT_NUMBER}` owned by `{PROJECT_OWNER_NAME}`. "
+                f"Available options are: {status_options_names}"
+            ) from error
+    else:
+        try:
+            result = next(
+                project_state_node.options[-1].id
+                for project_state_node in node_infos
+                if project_state_node.name is not None and project_state_node.name == _GITHUB_PROJECT_STATUS_FIELD_NAME
+            )
+        except StopIteration as error:
+            raise ValueError(
+                f"Cannot find a project status selection field in the GitHub project with number `{PROJECT_NUMBER}` "
+                f"owned by `{PROJECT_OWNER_NAME}`."
+            ) from error
+    return result
 
 
 def filtered_project_item_infos_by_done_status(
@@ -104,14 +116,15 @@ def filtered_project_item_infos_by_done_status(
 ) -> list[ProjectItemInfo]:
     result = []
     for node in node_infos:
-        has_last_project_state_option = node.field_value_by_name.option_id == last_project_state_option_id
-        assert node.type == GithubContentType.ISSUE or GithubContentType.PULL_REQUEST
+        has_last_project_state_option = (
+            node.field_value_by_name is not None and node.field_value_by_name.option_id == last_project_state_option_id
+        )
         if has_last_project_state_option:
             result.append(node.content)
     if len(result) < 1:
         logger.warning(
             f"No project items found with the last project status option selected in the GitHub project with number "
-            f"`{PROJECT_NUMBER}` owned by '{_PROJECT_OWNER_NAME}'"
+            f"`{PROJECT_NUMBER}` owned by '{PROJECT_OWNER_NAME}'"
         )
     return result
 
@@ -148,7 +161,7 @@ def _query_nodes_info(
     base_model: type[BaseModel], query_name: str, session: Session, project_id: str | None = None
 ) -> list:
     result = []
-    variables = {"login": _PROJECT_OWNER_NAME, "maxEntriesPerPage": _MAX_ENTRIES_PER_PAGE}
+    variables = {"login": PROJECT_OWNER_NAME, "maxEntriesPerPage": _MAX_ENTRIES_PER_PAGE}
     if project_id is not None:
         variables["projectId"] = project_id
     after = None

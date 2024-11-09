@@ -3,6 +3,16 @@ from typing import Any
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, NonNegativeInt, field_validator
 
+from check_done.common import (
+    ProjectOwnerType,
+    configuration_info,
+)
+
+PROJECT_OWNER_TYPE = configuration_info().project_owner_type
+PROJECT_OWNER_NAME = configuration_info().project_owner_name
+PROJECT_NUMBER = configuration_info().project_number
+IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION = ProjectOwnerType.Organization == PROJECT_OWNER_TYPE
+
 
 class NodesTypeName(StrEnum):
     CustomField = "CustomField"
@@ -18,10 +28,9 @@ class ProjectItemState(StrEnum):
     OPEN = "OPEN"
 
 
-class GithubContentType(StrEnum):
-    ISSUE = "ISSUE"
-    DRAFT_ISSUE = "DRAFT_ISSUE"
-    PULL_REQUEST = "PULL_REQUEST"
+class GithubProjectItemType(StrEnum):
+    issue = "Issue"
+    pull_request = "PullRequest"
 
 
 class _EmptyDict(BaseModel):
@@ -38,7 +47,7 @@ class PaginatedQueryInfo(BaseModel):
     page_info: PageInfo = Field(alias="pageInfo")
 
     @field_validator("nodes", mode="after", check_fields=True)
-    def validate_each_node(cls, nodes: list[Any]):
+    def resolve_nodes(cls, nodes: list[Any]):
         validated_nodes = []
         for node in nodes:
             node_type = node.get("__typename")
@@ -95,11 +104,12 @@ class LinkedProjectItemInfo(BaseModel):
 
 
 # NOTE: For simplicity, both issues and pull requests are treated the same under a generic "project item" type.
-#  Since all their underlying properties needed for checking are essentially identical,
+#  Since all their underlying properties needed for checking, are essentially identical,
 #  there is no value in differentiating between them as long as the above continues to be the case.
 class ProjectItemInfo(BaseModel):
     """A generic type representing both issues and pull requests in a project board."""
 
+    typename: GithubProjectItemType = Field(alias="__typename")
     assignees: AssigneesInfo
     body_html: str = Field(alias="bodyHTML", default=None)
     closed: bool
@@ -107,19 +117,13 @@ class ProjectItemInfo(BaseModel):
     repository: RepositoryInfo
     milestone: MilestoneInfo | None
     title: str
-    linked_project_item: LinkedProjectItemInfo = Field(
-        validation_alias=AliasChoices(
-            "closedByPullRequestsReferences", "closingIssuesReferences", "linked_project_item"
-        )
-    )
+    linked_project_item: LinkedProjectItemInfo = Field(alias="closingIssuesReferences", default=None)
 
 
 class ProjectV2ItemNodeInfo(BaseModel):
-    type: GithubContentType
-    # TODO#4: When including pull requests, implement their info model
-    #  See: https://docs.github.com/en/graphql/reference/unions#projectv2itemcontent
     content: ProjectItemInfo | _EmptyDict = None
     field_value_by_name: ProjectV2ItemProjectStatusInfo | None = Field(alias="fieldValueByName", default=None)
+    typename: str = Field(alias="__typename")
 
 
 class NodeByIdInfo(BaseModel):
