@@ -63,7 +63,7 @@ def test_can_resolve_environment_variables():
 
 def test_can_pass_on_missing_environment_variable():
     envvar_name = "MISSING_ENVIRONMENT_VARIABLE"
-    assert resolved_environment_variables(f"${{{envvar_name}}}", fail_on_missing_envvar=False) == ""
+    assert resolved_environment_variables(f"${{{envvar_name}}}", fail_on_missing_envvar=False) is None
 
 
 def test_fails_to_resolve_non_existent_environment_variable():

@@ -4,6 +4,7 @@ import pytest
 from pydantic import BaseModel
 from requests import HTTPError, Response
 
+from check_done.common import configuration_info
 from check_done.done_project_items_info import (
     PROJECT_NUMBER,
     GraphQlError,
@@ -23,6 +24,11 @@ from check_done.info import (
     ProjectV2SingleSelectFieldNodeInfo,
 )
 from tests._common import mock_project_v2_item_node_info
+
+_HAS_PROJECT_STATUS_NAME_TO_CHECK = configuration_info().project_status_name_to_check is not None
+_REASON_SHOULD_HAVE_ORGANIZATION_AUTHENTICATION_CONFIGURATION = (
+    "To enable, configure the `project_status_name_to_check` field as described in the readme."
+)
 
 
 @pytest.mark.parametrize(
@@ -178,9 +184,13 @@ def test_can_find_matching_project_state_option_id_from_name():
     assert _matching_project_state_option_id == _mock_matching_project_state_option_id
 
 
+@pytest.mark.skipif(
+    not _HAS_PROJECT_STATUS_NAME_TO_CHECK,
+    reason=_REASON_SHOULD_HAVE_ORGANIZATION_AUTHENTICATION_CONFIGURATION,
+)
 def test_fails_to_find_matching_project_state_option_id_from_name():
-    _wrongly_assumed_matching_project_state_option_name = "Done"
-    _actual_matching_project_state_option_name = "Finished"
+    _wrongly_assumed_matching_project_state_option_name = "Fake"
+    _actual_matching_project_state_option_name = configuration_info().project_status_name_to_check
     _mock_last_project_state_option_id_node_infos = [
         ProjectV2SingleSelectFieldNodeInfo(
             id="a1",
@@ -194,7 +204,7 @@ def test_fails_to_find_matching_project_state_option_id_from_name():
     ]
     with pytest.raises(
         ValueError,
-        match=f"Cannot find the project status matching name '{_wrongly_assumed_matching_project_state_option_name}' ",
+        match=f"Cannot find the project status matching name '{_actual_matching_project_state_option_name}' ",
     ):
         _matching_project_state_option_id = matching_project_state_option_id(
             _mock_last_project_state_option_id_node_infos, _wrongly_assumed_matching_project_state_option_name

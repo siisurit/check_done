@@ -28,6 +28,8 @@ class YamlInfo(BaseModel):
     project_status_name_to_check: str | None = None
     project_url: str
 
+    # TODO#13: Add more descriptive error messages than the default pydantic for miss-configurations.
+
     @field_validator(
         "project_url",
         "project_status_name_to_check",
@@ -39,7 +41,7 @@ class YamlInfo(BaseModel):
     def value_from_env(cls, value: Any | None):
         stripped_value = value.strip()
         result = (
-            resolved_environment_variables(value)
+            resolved_environment_variables(value, fail_on_missing_envvar=False)
             if stripped_value.startswith("${") and stripped_value.endswith("}")
             else stripped_value
         )
@@ -117,7 +119,7 @@ def resolved_environment_variables(value: str, fail_on_missing_envvar=True) -> s
     except KeyError as error:
         if fail_on_missing_envvar:
             raise ValueError(f"Cannot resolve {value}: environment variable must be set: {error!s}") from error
-        result = ""
+        result = None
     except ValueError as error:
         raise ValueError(f"Cannot resolve {value!r}: {error}.") from error
     return result
