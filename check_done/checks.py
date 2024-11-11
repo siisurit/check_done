@@ -3,11 +3,14 @@ from html.parser import HTMLParser
 from check_done.info import GithubProjectItemType, ProjectItemInfo
 
 
+# TODO#13 Naming: CQS -> warnings_from_checked_project_items
 def check_done_project_items_for_warnings(done_project_items: list[ProjectItemInfo]) -> list[str | None]:
     result = []
     for project_item in done_project_items:
         warning_reasons = [
-            warning_reason for check, warning_reason in CONDITION_CHECK_AND_WARNING_REASON_LIST if check(project_item)
+            warning_reason
+            for is_valid, warning_reason in CONDITION_CHECK_AND_WARNING_REASON_LIST
+            if is_valid(project_item)
         ]
         if len(warning_reasons) >= 1:
             warning = project_item_warning_string(project_item, warning_reasons)
@@ -32,6 +35,13 @@ def is_not_closed(project_item: ProjectItemInfo) -> bool:
     return not project_item.closed
 
 
+def possible_should_be_closed_warning(project_item: ProjectItemInfo) -> str | None:
+    return "should be closed" if not project_item.closed else None
+
+
+# TODO#13 Change other checks to warning functions.
+
+
 def is_not_assigned(project_item: ProjectItemInfo) -> bool:
     return project_item.assignees.total_count == 0
 
@@ -41,25 +51,28 @@ def has_no_milestone(project_item: ProjectItemInfo) -> bool:
 
 
 def has_unfinished_goals(project_item: ProjectItemInfo) -> bool:
-    class _GoalsHTMLParser(HTMLParser):
-        def __init__(self):
-            super().__init__()
-            self.is_any_goal_unchecked = False
-
-        def handle_starttag(self, tag, attrs):
-            if tag == "input":
-                attr_dict = dict(attrs)
-                is_checkbox = attr_dict.get("type") == "checkbox"
-                is_unchecked = "checked" not in attr_dict
-                if is_checkbox and is_unchecked:
-                    self.is_any_goal_unchecked = True
-
-        def has_unfinished_goals(self):
-            return self.is_any_goal_unchecked
-
-    parser = _GoalsHTMLParser()
+    parser = _AllTasksCheckedHtmlParser()
     parser.feed(project_item.body_html)
     return parser.has_unfinished_goals()
+
+
+class _AllTasksCheckedHtmlParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.all_tasks_are_checked = True
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "input":
+            attr_dict = dict(attrs)
+            is_checkbox = attr_dict.get("type") == "checkbox"
+            if is_checkbox:
+                is_checked = "checked" in attr_dict
+                if not is_checked:
+                    self.all_tasks_are_checked = False
+                    # TODO Optimize: If any task is unchecked, stop parsing.
+
+    def has_unfinished_goals(self):  # TODO#13 Possibly remove
+        return not self.all_tasks_are_checked
 
 
 def is_missing_linked_issue_in_pull_request(project_item: ProjectItemInfo) -> bool:
@@ -69,10 +82,12 @@ def is_missing_linked_issue_in_pull_request(project_item: ProjectItemInfo) -> bo
     return result
 
 
-CONDITION_CHECK_AND_WARNING_REASON_LIST = [
+CONDITION_CHECK_AND_WARNING_REASON_LIST = [  # TODO#13 Clean up: Remove, rename, or change to map.
     (is_not_closed, "not closed"),
     (is_not_assigned, "missing assignee"),
     (has_no_milestone, "missing milestone"),
     (has_unfinished_goals, "missing finished goals"),
     (is_missing_linked_issue_in_pull_request, "missing linked issue"),
 ]
+
+POSSIBLE_WARNINGS = [possible_should_be_closed_warning]  # TODO#13 Add other warning functions.

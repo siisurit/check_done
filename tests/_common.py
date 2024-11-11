@@ -24,6 +24,7 @@ REASON_SHOULD_HAVE_ORGANIZATION_AUTHENTICATION_CONFIGURATION = (
 )
 
 
+# TODO#13 Clean up all "node_info" / "NodeInfo" names.
 def mock_project_v2_item_node_info(status: str = "Done", option_id: str = "a1", closed: bool = True):
     return ProjectV2ItemNodeInfo(
         __typename="ProjectV2Item",

@@ -70,7 +70,7 @@ class ProjectV2Options(BaseModel):
     name: str
 
 
-class ProjectV2SingleSelectFieldNodeInfo(BaseModel):
+class ProjectV2SingleSelectFieldNodeInfo(BaseModel):  # TODO#13 Rename: ProjectV2SingleSelectFieldInfo
     id: str
     name: str
     typename: str = Field(alias="__typename")
@@ -120,7 +120,7 @@ class ProjectItemInfo(BaseModel):
     linked_project_item: LinkedProjectItemInfo = Field(alias="closingIssuesReferences", default=None)
 
 
-class ProjectV2ItemNodeInfo(BaseModel):
+class ProjectV2ItemNodeInfo(BaseModel):  # TODO#13 Rename ProjectV2ItemInfo
     content: ProjectItemInfo | _EmptyDict = None
     field_value_by_name: ProjectV2ItemProjectStatusInfo | None = Field(alias="fieldValueByName", default=None)
     typename: str = Field(alias="__typename")

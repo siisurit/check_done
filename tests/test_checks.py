@@ -10,6 +10,8 @@ from check_done.checks import (
 )
 from tests._common import mock_project_item_info
 
+# TODO#13 Clean up "is False/True".
+
 
 def test_can_check_done_project_items_for_warnings():
     mock_done_project_items = [
@@ -98,8 +100,8 @@ def test_can_check_for_unfinished_goals():
     """
     project_item_with_finished_goals = mock_project_item_info(body_html=html_with_an_finished_goals)
     project_item_with_empty_html_body = mock_project_item_info()
-    assert has_unfinished_goals(project_item_with_unfinished_goals) is True
-    assert has_unfinished_goals(project_item_with_finished_goals) is False
+    assert has_unfinished_goals(project_item_with_unfinished_goals)
+    assert not has_unfinished_goals(project_item_with_finished_goals)
     assert has_unfinished_goals(project_item_with_empty_html_body) is False
 
 

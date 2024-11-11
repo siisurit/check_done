@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 
 def done_project_items_info() -> list[ProjectItemInfo]:
-    session = requests.Session()
+    session = requests.Session()  # TODO#13 Close session -> wrap in "with".
     session.headers = {"Accept": "application/vnd.github+json"}
     session.auth = HttpBearerAuth(_ACCESS_TOKEN)
 
@@ -70,63 +70,77 @@ def done_project_items_info() -> list[ProjectItemInfo]:
 def matching_project_id(node_infos: list[ProjectV2NodeInfo]) -> str:
     try:
         return next(str(project_node.id) for project_node in node_infos if project_node.number == PROJECT_NUMBER)
-    except StopIteration as error:
+    except StopIteration:
         raise ValueError(
             f"Cannot find a project with number '{PROJECT_NUMBER}', owned by '{PROJECT_OWNER_NAME}'."
-        ) from error
+        ) from None
 
 
 def matching_project_state_option_id(
-    node_infos: list[ProjectV2SingleSelectFieldNodeInfo], project_status_name_to_check: str | None
+    # TODO#13 Rename: node_info -> single_select_field_infos
+    single_select_field_infos: list[ProjectV2SingleSelectFieldNodeInfo],
+    project_status_name_to_check: str | None,
 ) -> str:
-    if project_status_name_to_check is not None:
-        try:
-            result = next(
-                option.id
-                for project_state_node in node_infos
-                for option in project_state_node.options
-                if project_status_name_to_check in option.name
-            )
-        except StopIteration as error:
+    # TODO#13 Test and clean up
+    status_field_info = next(
+        (
+            field_info
+            for field_info in single_select_field_infos
+            if field_info.name == _GITHUB_PROJECT_STATUS_FIELD_NAME
+        ),
+        None,
+    )
+    if status_field_info is None:
+        raise ValueError(
+            f"Cannot find a project status selection field in the GitHub project with number `{PROJECT_NUMBER}` "
+            f"owned by `{PROJECT_OWNER_NAME}`."
+        )
+    if status_field_info.options is None:
+        result = status_field_info.options[-1].id
+    else:
+        result = next(
+            (
+                status_option.id
+                for status_option in status_field_info.options
+                if status_option.name == project_status_name_to_check
+            ),
+            None,
+        )
+        if result is None:
             status_options_names = [
-                option.name for project_state_node in node_infos for option in project_state_node.options
+                option.name for project_state_node in single_select_field_infos for option in project_state_node.options
             ]
             raise ValueError(
                 f"Cannot find the project status matching name '{_PROJECT_STATUS_NAME_TO_CHECK}' "
                 f"in the GitHub project with number `{PROJECT_NUMBER}` owned by `{PROJECT_OWNER_NAME}`. "
                 f"Available options are: {status_options_names}"
-            ) from error
-    else:
-        try:
-            result = next(
-                project_state_node.options[-1].id
-                for project_state_node in node_infos
-                if project_state_node.name is not None and project_state_node.name == _GITHUB_PROJECT_STATUS_FIELD_NAME
             )
-        except StopIteration as error:
-            raise ValueError(
-                f"Cannot find a project status selection field in the GitHub project with number `{PROJECT_NUMBER}` "
-                f"owned by `{PROJECT_OWNER_NAME}`."
-            ) from error
+
     return result
 
 
 def filtered_project_item_infos_by_done_status(
-    node_infos: list[ProjectV2ItemNodeInfo], last_project_state_option_id: str
+    # TODO#13 Rename node_infos
+    project_item_infos: list[ProjectV2ItemNodeInfo],
+    last_project_state_option_id: str,
 ) -> list[ProjectItemInfo]:
     result = []
-    for node in node_infos:
+    for project_item_info in project_item_infos:
         has_last_project_state_option = (
-            node.field_value_by_name is not None and node.field_value_by_name.option_id == last_project_state_option_id
+            project_item_info.field_value_by_name is not None
+            and project_item_info.field_value_by_name.option_id == last_project_state_option_id
         )
         if has_last_project_state_option:
-            result.append(node.content)
+            result.append(project_item_info.content)
     if len(result) < 1:
         logger.warning(
             f"No project items found with the last project status option selected in the GitHub project with number "
             f"`{PROJECT_NUMBER}` owned by '{PROJECT_OWNER_NAME}'"
         )
     return result
+
+
+# TODO#13 Consider moving to separate module "graphql".
 
 
 @lru_cache
@@ -189,10 +203,10 @@ def _query_nodes_info(
 def get_paginated_query_info_from_response_info(base_model: BaseModel) -> PaginatedQueryInfo:
     if isinstance(base_model, PaginatedQueryInfo):
         return base_model
-    for model in base_model.__fields_set__:
-        field_value = getattr(base_model, model)
+    for model_field_name in base_model.model_fields_set:
+        field_value = getattr(base_model, model_field_name)
         if isinstance(field_value, BaseModel):
-            page_info = get_paginated_query_info_from_response_info(field_value)
+            page_info = get_paginated_query_info_from_response_info(field_value)  # TODO#13 Prepare example JSON
             if page_info is not None:
                 return page_info
     raise ValueError(f"Could not find nodes info in {base_model}.")

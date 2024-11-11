@@ -31,6 +31,10 @@ repos:
       - id: end-of-file-fixer
       - id: mixed-line-ending
 
+  # TODO#13 Add check for copyright. Use:
+  # Copyright (c) 2024, Siisurit e.U.
+  # All rights reserved. Distributed under the MIT License.
+
   # NOTE: This should be the last check to ensure everything else is checked
   #  even for the rare case a commit should go into one of the protected
   #  branches.

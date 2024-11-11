@@ -7,8 +7,10 @@ from typing import Any
 
 import yaml
 from dotenv import load_dotenv
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from requests.auth import AuthBase
+
+# TODO#13: Move parts to separate module "config".
 
 load_dotenv()
 
@@ -19,6 +21,59 @@ _GITHUB_ORGANIZATION_NAME_AND_PROJECT_NUMBER_URL_REGEX = re.compile(
 _GITHUB_USER_NAME_AND_PROJECT_NUMBER_URL_REGEX = re.compile(
     r"https://github\.com/users/(?P<user_name>[a-zA-Z0-9\-]+)/projects/(?P<project_number>[0-9]+).*"
 )
+
+
+class ConfigurationInfo2(BaseModel):
+    project_url: str
+
+    # Required for user project
+    personal_access_token: str | None = None
+
+    # Required for organization project
+    check_done_github_app_id: str | None = None
+    check_done_github_app_private_key: str | None = None
+
+    # Optional
+    project_status_name_to_check: str | None = None
+
+    # Fields computed during initialization
+    project_number: int = Field(init=False)
+    project_owner_name: str = Field(init=False)
+    project_owner_type: str = Field(init=False)
+
+    @field_validator(
+        "project_url",
+        "project_status_name_to_check",
+        "personal_access_token",
+        "check_done_github_app_id",
+        "check_done_github_app_private_key",
+        mode="before",
+    )
+    def value_from_env(cls, value: Any | None):
+        stripped_value = value.strip()
+        result = (
+            resolved_environment_variables(value, fail_on_missing_envvar=False)
+            if stripped_value.startswith("${") and stripped_value.endswith("}")
+            else stripped_value
+        )
+        return result
+
+    @model_validator(mode="after")
+    def validate_at_least_one_authentication_method_in_configuration(self):
+        self.project_owner_type, self.project_owner_name, self.project_number = (
+            github_project_owner_type_and_project_owner_name_and_project_number_from_url_if_matches(self.project_url)
+        )
+        has_user_authentication = (
+            self.personal_access_token is not None and self.project_owner_type == ProjectOwnerType.User.value
+        )
+        has_organizational_authentication = (
+            self.check_done_github_app_id is not None
+            and self.check_done_github_app_private_key is not None
+            and self.project_owner_type == ProjectOwnerType.Organization.value
+        )
+        if not (has_user_authentication or has_organizational_authentication):
+            raise ValueError("At least one authentication method must be configured.")
+        return self
 
 
 class YamlInfo(BaseModel):

@@ -45,7 +45,7 @@ def check_done_command(arguments=None):
         command.execute()
         result = 0
     except KeyboardInterrupt:
-        logger.exception("Interrupted as requested by user.")
+        logger.error("Interrupted as requested by user.")  # noqa: TRY400
     except Exception:
         logger.exception("Cannot check done project items.")
     return result
