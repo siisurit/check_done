@@ -43,7 +43,7 @@ jobs:
           CHECK_DONE_GITHUB_APP_PRIVATE_KEY: |
             ${{ secrets.CHECK_DONE_GITHUB_APP_PRIVATE_KEY }}
         run: |
-          poetry run pytest --cov=check-done --cov-branch
+          poetry run pytest --cov=check_done --cov-branch
 
   check-style:
     runs-on: ubuntu-latest
