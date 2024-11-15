@@ -1,10 +1,12 @@
+# Copyright (C) 2024 by Siisurit e.U., Austria.
+# All rights reserved. Distributed under the MIT License.
 import pytest
 import requests
 import requests_mock
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-from check_done.common import HttpBearerAuth
+from check_done.graphql import HttpBearerAuth
 from check_done.info import (
     PROJECT_OWNER_NAME,
 )

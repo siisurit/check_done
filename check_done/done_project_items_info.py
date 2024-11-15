@@ -1,75 +1,61 @@
+# Copyright (C) 2024 by Siisurit e.U., Austria.
+# All rights reserved. Distributed under the MIT License.
 import logging
-import re
-from enum import Enum
-from functools import lru_cache
-from pathlib import Path
-from typing import Any
 
 import requests
-from pydantic import BaseModel
-from requests import HTTPError, Response, Session
 
-from check_done.common import (
-    HttpBearerAuth,
-    configuration_info,
-)
+from check_done.config import configuration_info
+from check_done.graphql import GraphQlQuery, HttpBearerAuth, query_infos
 from check_done.info import (
     IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION,
     PROJECT_NUMBER,
     PROJECT_OWNER_NAME,
     NodeByIdInfo,
-    PaginatedQueryInfo,
     ProjectItemInfo,
     ProjectOwnerInfo,
-    ProjectV2ItemNodeInfo,
-    ProjectV2NodeInfo,
-    ProjectV2SingleSelectFieldNodeInfo,
+    ProjectV2ItemNode,
+    ProjectV2Node,
+    ProjectV2SingleSelectFieldNode,
 )
 from check_done.organization_authentication import access_token_from_organization
 
-_GRAPHQL_ENDPOINT = "https://api.github.com/graphql"
 _PROJECT_STATUS_NAME_TO_CHECK = configuration_info().project_status_name_to_check
 _PERSONAL_ACCESS_TOKEN = configuration_info().personal_access_token
 _ORGANIZATION_ACCESS_TOKEN = (
     access_token_from_organization(PROJECT_OWNER_NAME) if IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION else None
 )
 _ACCESS_TOKEN = _ORGANIZATION_ACCESS_TOKEN or _PERSONAL_ACCESS_TOKEN
-_PATH_TO_QUERIES = Path(__file__).parent / "queries"
-_MAX_ENTRIES_PER_PAGE = 100
 _GITHUB_PROJECT_STATUS_FIELD_NAME = "Status"
 logger = logging.getLogger(__name__)
 
 
 def done_project_items_info() -> list[ProjectItemInfo]:
-    session = requests.Session()  # TODO#13 Close session -> wrap in "with".
-    session.headers = {"Accept": "application/vnd.github+json"}
-    session.auth = HttpBearerAuth(_ACCESS_TOKEN)
+    with requests.Session() as session:
+        session.headers = {"Accept": "application/vnd.github+json"}
+        session.auth = HttpBearerAuth(_ACCESS_TOKEN)
 
-    projects_ids_query_name = (
-        _GraphQlQuery.ORGANIZATION_PROJECTS_IDS.name
-        if IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION
-        else _GraphQlQuery.USER_PROJECTS_IDS.name
-    )
-    projects_ids_nodes_info = _query_nodes_info(ProjectOwnerInfo, projects_ids_query_name, session)
-    project_id = matching_project_id(projects_ids_nodes_info)
+        project_query_name = (
+            GraphQlQuery.ORGANIZATION_PROJECTS.name
+            if IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION
+            else GraphQlQuery.USER_PROJECTS.name
+        )
+        project_infos = query_infos(ProjectOwnerInfo, project_query_name, session)
+        project_id = matching_project_id(project_infos)
+        project_single_select_field_infos = query_infos(
+            NodeByIdInfo, GraphQlQuery.PROJECT_SINGLE_SELECT_FIELDS.name, session, project_id
+        )
+        project_item_infos = query_infos(NodeByIdInfo, GraphQlQuery.PROJECT_V2_ITEMS.name, session, project_id)
 
-    last_project_state_option_ids_nodes_info = _query_nodes_info(
-        NodeByIdInfo, _GraphQlQuery.PROJECT_STATE_OPTIONS_IDS.name, session, project_id
+    project_status_option_id = matching_project_state_option_id(
+        project_single_select_field_infos, _PROJECT_STATUS_NAME_TO_CHECK
     )
-    last_project_state_option_id = matching_project_state_option_id(
-        last_project_state_option_ids_nodes_info, _PROJECT_STATUS_NAME_TO_CHECK
-    )
-
-    project_items_nodes_info = _query_nodes_info(
-        NodeByIdInfo, _GraphQlQuery.PROJECT_V_2_ITEMS.name, session, project_id
-    )
-    result = filtered_project_item_infos_by_done_status(project_items_nodes_info, last_project_state_option_id)
+    result = filtered_project_item_infos_by_done_status(project_item_infos, project_status_option_id)
     return result
 
 
-def matching_project_id(node_infos: list[ProjectV2NodeInfo]) -> str:
+def matching_project_id(project_infos: list[ProjectV2Node]) -> str:
     try:
-        return next(str(project_node.id) for project_node in node_infos if project_node.number == PROJECT_NUMBER)
+        return next(str(project_info.id) for project_info in project_infos if project_info.number == PROJECT_NUMBER)
     except StopIteration:
         raise ValueError(
             f"Cannot find a project with number '{PROJECT_NUMBER}', owned by '{PROJECT_OWNER_NAME}'."
@@ -77,159 +63,58 @@ def matching_project_id(node_infos: list[ProjectV2NodeInfo]) -> str:
 
 
 def matching_project_state_option_id(
-    # TODO#13 Rename: node_info -> single_select_field_infos
-    single_select_field_infos: list[ProjectV2SingleSelectFieldNodeInfo],
+    project_single_select_field_infos: list[ProjectV2SingleSelectFieldNode],
     project_status_name_to_check: str | None,
 ) -> str:
-    # TODO#13 Test and clean up
-    status_field_info = next(
-        (
-            field_info
-            for field_info in single_select_field_infos
+    try:
+        status_options = next(
+            field_info.options
+            for field_info in project_single_select_field_infos
             if field_info.name == _GITHUB_PROJECT_STATUS_FIELD_NAME
-        ),
-        None,
-    )
-    if status_field_info is None:
+        )
+    except StopIteration:
         raise ValueError(
             f"Cannot find a project status selection field in the GitHub project with number `{PROJECT_NUMBER}` "
             f"owned by `{PROJECT_OWNER_NAME}`."
-        )
-    if status_field_info.options is None:
-        result = status_field_info.options[-1].id
-    else:
-        result = next(
-            (
+        ) from None
+    if project_status_name_to_check:
+        logger.info(f"Checking project items with status matching: '{project_status_name_to_check}'")
+        try:
+            result = next(
                 status_option.id
-                for status_option in status_field_info.options
-                if status_option.name == project_status_name_to_check
-            ),
-            None,
-        )
-        if result is None:
-            status_options_names = [
-                option.name for project_state_node in single_select_field_infos for option in project_state_node.options
+                for status_option in status_options
+                if project_status_name_to_check in status_option.name
+            )
+        except StopIteration:
+            project_status_options_names = [
+                option.name for field_info in project_single_select_field_infos for option in field_info.options
             ]
             raise ValueError(
                 f"Cannot find the project status matching name '{_PROJECT_STATUS_NAME_TO_CHECK}' "
                 f"in the GitHub project with number `{PROJECT_NUMBER}` owned by `{PROJECT_OWNER_NAME}`. "
-                f"Available options are: {status_options_names}"
-            )
-
+                f"Available options are: {project_status_options_names}"
+            ) from None
+    else:
+        logger.info("Checking project items in the last status/board column.")
+        result = status_options[-1].id
     return result
 
 
 def filtered_project_item_infos_by_done_status(
-    # TODO#13 Rename node_infos
-    project_item_infos: list[ProjectV2ItemNodeInfo],
-    last_project_state_option_id: str,
+    project_item_infos: list[ProjectV2ItemNode],
+    project_state_option_id: str,
 ) -> list[ProjectItemInfo]:
     result = []
     for project_item_info in project_item_infos:
-        has_last_project_state_option = (
+        has_project_state_option = (
             project_item_info.field_value_by_name is not None
-            and project_item_info.field_value_by_name.option_id == last_project_state_option_id
+            and project_item_info.field_value_by_name.option_id == project_state_option_id
         )
-        if has_last_project_state_option:
+        if has_project_state_option:
             result.append(project_item_info.content)
     if len(result) < 1:
         logger.warning(
-            f"No project items found with the last project status option selected in the GitHub project with number "
-            f"`{PROJECT_NUMBER}` owned by '{PROJECT_OWNER_NAME}'"
+            f"No project items found for the specified project status in the GitHub project "
+            f"with number '{PROJECT_NUMBER}' owned by '{PROJECT_OWNER_NAME}'."
         )
     return result
-
-
-# TODO#13 Consider moving to separate module "graphql".
-
-
-@lru_cache
-def minimized_graphql(graphql_query: str) -> str:
-    single_spaced_query = re.sub(r"\s+", " ", graphql_query)
-    formatted_query = re.sub(r"\s*([{}()\[\]:,])\s*", r"\1", single_spaced_query)
-    result = formatted_query.strip()
-    return result
-
-
-def _graphql_query(item_name: str) -> str:
-    query_path = _PATH_TO_QUERIES / f"{item_name}.graphql"
-    with query_path.open(encoding="utf-8") as query_file:
-        query_text = query_file.read()
-    return minimized_graphql(query_text)
-
-
-class _GraphQlQuery(Enum):
-    ORGANIZATION_PROJECTS_IDS = _graphql_query("organization_projects_ids")
-    USER_PROJECTS_IDS = _graphql_query("user_projects_ids")
-    PROJECT_STATE_OPTIONS_IDS = _graphql_query("project_state_options_ids")
-    PROJECT_V_2_ITEMS = _graphql_query("project_v2_items")
-
-    @staticmethod
-    def query_for(name: str):
-        assert name is not None
-        assert name.upper() == name
-        return _GraphQlQuery[name].value
-
-
-def _query_nodes_info(
-    base_model: type[BaseModel], query_name: str, session: Session, project_id: str | None = None
-) -> list:
-    result = []
-    variables = {"login": PROJECT_OWNER_NAME, "maxEntriesPerPage": _MAX_ENTRIES_PER_PAGE}
-    if project_id is not None:
-        variables["projectId"] = project_id
-    after = None
-    has_more_pages = True
-    while has_more_pages:
-        query = _GraphQlQuery.query_for(query_name)
-        if after is not None:
-            variables["after"] = after
-        json_payload_map = {
-            "variables": variables,
-            "query": query,
-        }
-        response = session.post(_GRAPHQL_ENDPOINT, json=json_payload_map)
-        response_map = checked_graphql_data_map(response)
-        response_info = base_model(**response_map)
-        paginated_query_info = get_paginated_query_info_from_response_info(response_info)
-        nodes_info = paginated_query_info.nodes
-        page_info = paginated_query_info.page_info
-        after = page_info.endCursor
-        has_more_pages = page_info.hasNextPage
-        result.extend(nodes_info)
-    return result
-
-
-def get_paginated_query_info_from_response_info(base_model: BaseModel) -> PaginatedQueryInfo:
-    if isinstance(base_model, PaginatedQueryInfo):
-        return base_model
-    for model_field_name in base_model.model_fields_set:
-        field_value = getattr(base_model, model_field_name)
-        if isinstance(field_value, BaseModel):
-            page_info = get_paginated_query_info_from_response_info(field_value)  # TODO#13 Prepare example JSON
-            if page_info is not None:
-                return page_info
-    raise ValueError(f"Could not find nodes info in {base_model}.")
-
-
-def checked_graphql_data_map(response: Response) -> dict[str, Any | None]:
-    try:
-        response.raise_for_status()
-    except HTTPError as error:
-        raise GraphQlError(error) from error
-    response_map = response.json()
-    if not isinstance(response_map, dict):
-        raise GraphQlError(f"GraphQL response must be a map but is: {response_map}.")
-    errors = response_map.get("errors")
-    if errors is not None:
-        raise GraphQlError(f'{errors[0]["message"]}; details: {errors}.')
-    result = response_map.get("data")
-    if result is None:
-        raise GraphQlError(f"GraphQL result must include data but only has: {sorted(response_map.keys())}.")
-    if not isinstance(result, dict):
-        raise GraphQlError(f"GraphQL data must be a map but is: {result}.")
-    return result
-
-
-class GraphQlError(Exception):
-    pass

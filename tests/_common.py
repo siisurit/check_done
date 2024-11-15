@@ -1,13 +1,15 @@
+# Copyright (C) 2024 by Siisurit e.U., Austria.
+# All rights reserved. Distributed under the MIT License.
 from check_done.info import (
     IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION,
     PROJECT_OWNER_NAME,
     AssigneesInfo,
     GithubProjectItemType,
     LinkedProjectItemInfo,
-    LinkedProjectItemNodeInfo,
+    LinkedProjectItemNode,
     MilestoneInfo,
     ProjectItemInfo,
-    ProjectV2ItemNodeInfo,
+    ProjectV2ItemNode,
     ProjectV2ItemProjectStatusInfo,
     RepositoryInfo,
 )
@@ -24,9 +26,8 @@ REASON_SHOULD_HAVE_ORGANIZATION_AUTHENTICATION_CONFIGURATION = (
 )
 
 
-# TODO#13 Clean up all "node_info" / "NodeInfo" names.
-def mock_project_v2_item_node_info(status: str = "Done", option_id: str = "a1", closed: bool = True):
-    return ProjectV2ItemNodeInfo(
+def mock_project_v2_item_node(status: str = "Done", option_id: str = "a1", closed: bool = True):
+    return ProjectV2ItemNode(
         __typename="ProjectV2Item",
         content=mock_project_item_info(closed=closed),
         fieldValueByName=ProjectV2ItemProjectStatusInfo(status=status, optionId=option_id),
@@ -46,7 +47,7 @@ def mock_project_item_info(
     typename: GithubProjectItemType = GithubProjectItemType.pull_request,
 ):
     if linked_project_items is None:
-        linked_project_items = [LinkedProjectItemNodeInfo(number=1, title="mock_linked_project_item_title")]
+        linked_project_items = [LinkedProjectItemNode(number=1, title="mock_linked_project_item_title")]
     if milestone is None and not has_no_milestone:
         milestone = MilestoneInfo(id="mock_milestone_id")
     if repository is None:

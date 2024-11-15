@@ -1,14 +1,13 @@
+# Copyright (C) 2024 by Siisurit e.U., Austria.
+# All rights reserved. Distributed under the MIT License.
 import time
 
 import jwt
 import requests
 from requests import Session
 
-from check_done.common import (
-    AuthenticationError,
-    HttpBearerAuth,
-    configuration_info,
-)
+from check_done.config import configuration_info
+from check_done.graphql import HttpBearerAuth
 
 CHECK_DONE_GITHUB_APP_ID = configuration_info().check_done_github_app_id
 CHECK_DONE_GITHUB_APP_PRIVATE_KEY = configuration_info().check_done_github_app_private_key
@@ -67,3 +66,7 @@ def get_access_token_from_check_done_github_app_installation_id(session: Session
     raise AuthenticationError(
         f"Could not retrieve access token: status={response.status_code} - response_text={response.text}"
     )
+
+
+class AuthenticationError(Exception):
+    """Error raised due to failed JWT authentication process."""

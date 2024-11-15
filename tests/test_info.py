@@ -1,9 +1,11 @@
+# Copyright (C) 2024 by Siisurit e.U., Austria.
+# All rights reserved. Distributed under the MIT License.
 from check_done.info import (
     PageInfo,
-    PaginatedQueryInfo,
-    ProjectV2ItemNodeInfo,
-    ProjectV2NodeInfo,
-    ProjectV2SingleSelectFieldNodeInfo,
+    ProjectV2ItemNode,
+    ProjectV2Node,
+    ProjectV2SingleSelectFieldNode,
+    QueryInfo,
 )
 
 
@@ -19,7 +21,7 @@ def test_can_resolve_nodes():
         {"__typename": "ProjectV2Item", "type": "ISSUE", "content": {}, "field_value_by_name": None},
     ]
     page_info = PageInfo(endCursor="a", hasNextPage=False)
-    query_info = PaginatedQueryInfo(nodes=nodes, pageInfo=page_info)
-    assert isinstance(query_info.nodes[0], ProjectV2NodeInfo)
-    assert isinstance(query_info.nodes[1], ProjectV2SingleSelectFieldNodeInfo)
-    assert isinstance(query_info.nodes[2], ProjectV2ItemNodeInfo)
+    query_info = QueryInfo(nodes=nodes, pageInfo=page_info)
+    assert isinstance(query_info.nodes[0], ProjectV2Node)
+    assert isinstance(query_info.nodes[1], ProjectV2SingleSelectFieldNode)
+    assert isinstance(query_info.nodes[2], ProjectV2ItemNode)

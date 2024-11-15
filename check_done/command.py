@@ -1,10 +1,12 @@
+# Copyright (C) 2024 by Siisurit e.U., Austria.
+# All rights reserved. Distributed under the MIT License.
 import argparse
 import logging
 import sys
 
 import check_done
-from check_done.checks import check_done_project_items_for_warnings
 from check_done.done_project_items_info import done_project_items_info
+from check_done.warning_checks import warnings_for_done_project_items
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +31,7 @@ class Command:
     @staticmethod
     def execute():
         done_project_items = done_project_items_info()
-        warnings = check_done_project_items_for_warnings(done_project_items)
+        warnings = warnings_for_done_project_items(done_project_items)
         if len(warnings) == 0:
             logger.info("check_done found no problems with the items in the specified project state/column.")
         else:

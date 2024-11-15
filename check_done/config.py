@@ -1,3 +1,5 @@
+# Copyright (C) 2024 by Siisurit e.U., Austria.
+# All rights reserved. Distributed under the MIT License.
 import os
 import re
 import string
@@ -7,10 +9,8 @@ from typing import Any
 
 import yaml
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field, field_validator, model_validator
-from requests.auth import AuthBase
-
-# TODO#13: Move parts to separate module "config".
+from pydantic import Field, field_validator, model_validator
+from pydantic.dataclasses import dataclass
 
 load_dotenv()
 
@@ -23,13 +23,14 @@ _GITHUB_USER_NAME_AND_PROJECT_NUMBER_URL_REGEX = re.compile(
 )
 
 
-class ConfigurationInfo2(BaseModel):
+@dataclass
+class ConfigurationInfo:
     project_url: str
 
-    # Required for user project
+    # Required for user owned project
     personal_access_token: str | None = None
 
-    # Required for organization project
+    # Required for organization owned project
     check_done_github_app_id: str | None = None
     check_done_github_app_private_key: str | None = None
 
@@ -59,61 +60,11 @@ class ConfigurationInfo2(BaseModel):
         return result
 
     @model_validator(mode="after")
-    def validate_at_least_one_authentication_method_in_configuration(self):
+    def validate_project_details_from_url_and_at_least_one_authentication_method_in_configuration(self):
         self.project_owner_type, self.project_owner_name, self.project_number = (
             github_project_owner_type_and_project_owner_name_and_project_number_from_url_if_matches(self.project_url)
         )
-        has_user_authentication = (
-            self.personal_access_token is not None and self.project_owner_type == ProjectOwnerType.User.value
-        )
-        has_organizational_authentication = (
-            self.check_done_github_app_id is not None
-            and self.check_done_github_app_private_key is not None
-            and self.project_owner_type == ProjectOwnerType.Organization.value
-        )
-        if not (has_user_authentication or has_organizational_authentication):
-            raise ValueError("At least one authentication method must be configured.")
-        return self
 
-
-class YamlInfo(BaseModel):
-    check_done_github_app_id: str | None = None
-    check_done_github_app_private_key: str | None = None
-    personal_access_token: str | None = None
-    project_status_name_to_check: str | None = None
-    project_url: str
-
-    # TODO#13: Add more descriptive error messages than the default pydantic for miss-configurations.
-
-    @field_validator(
-        "project_url",
-        "project_status_name_to_check",
-        "personal_access_token",
-        "check_done_github_app_id",
-        "check_done_github_app_private_key",
-        mode="before",
-    )
-    def value_from_env(cls, value: Any | None):
-        stripped_value = value.strip()
-        result = (
-            resolved_environment_variables(value, fail_on_missing_envvar=False)
-            if stripped_value.startswith("${") and stripped_value.endswith("}")
-            else stripped_value
-        )
-        return result
-
-
-class ConfigurationInfo(BaseModel):
-    check_done_github_app_id: str | None = None
-    check_done_github_app_private_key: str | None = None
-    personal_access_token: str | None = None
-    project_number: int
-    project_owner_name: str
-    project_owner_type: str
-    project_status_name_to_check: str | None = None
-
-    @model_validator(mode="after")
-    def validate_at_least_one_authentication_method_in_configuration(self):
         has_user_authentication = (
             self.personal_access_token is not None and self.project_owner_type == ProjectOwnerType.User.value
         )
@@ -129,20 +80,7 @@ class ConfigurationInfo(BaseModel):
 
 def configuration_info() -> ConfigurationInfo:
     yaml_map = configuration_map_from_yaml_file(_CONFIGURATION_PATH)
-    yaml_info = YamlInfo(**yaml_map)
-    project_url = yaml_info.project_url
-    project_owner_type, project_owner_name, project_number = (
-        github_project_owner_type_and_project_owner_name_and_project_number_from_url_if_matches(project_url)
-    )
-    return ConfigurationInfo(
-        check_done_github_app_id=yaml_info.check_done_github_app_id,
-        check_done_github_app_private_key=yaml_info.check_done_github_app_private_key,
-        personal_access_token=yaml_info.personal_access_token,
-        project_number=project_number,
-        project_owner_name=project_owner_name,
-        project_owner_type=project_owner_type,
-        project_status_name_to_check=yaml_info.project_status_name_to_check,
-    )
+    return ConfigurationInfo(**yaml_map)
 
 
 class ProjectOwnerType(StrEnum):
@@ -189,18 +127,3 @@ def configuration_map_from_yaml_file(configuration_path: Path) -> dict:
     except FileNotFoundError as error:
         raise FileNotFoundError(f"Cannot find check_done configuration: {configuration_path}") from error
     return result
-
-
-class AuthenticationError(Exception):
-    """Error raised due to failed JWT authentication process."""
-
-
-class HttpBearerAuth(AuthBase):
-    # Source:
-    # <https://stackoverflow.com/questions/29931671/making-an-api-call-in-python-with-an-api-that-requires-a-bearer-token>
-    def __init__(self, token):
-        self.token = token
-
-    def __call__(self, request):
-        request.headers["Authorization"] = "Bearer " + self.token
-        return request

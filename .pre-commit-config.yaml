@@ -31,9 +31,18 @@ repos:
       - id: end-of-file-fixer
       - id: mixed-line-ending
 
-  # TODO#13 Add check for copyright. Use:
-  # Copyright (c) 2024, Siisurit e.U.
-  # All rights reserved. Distributed under the MIT License.
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.5
+    hooks:
+      - id: insert-license
+        files: \.(po|py)$
+        args:
+          - --license-filepath=.license-in-code
+          - --comment-style=#
+          - --detect-license-in-X-top-lines=2
+          - --no-extra-eol
+          - --allow-past-years # Using these arguments allows for a date range
+          - --use-current-year # (original_date - current_date) to be generated.
 
   # NOTE: This should be the last check to ensure everything else is checked
   #  even for the rare case a commit should go into one of the protected

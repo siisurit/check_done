@@ -1,9 +1,11 @@
+# Copyright (C) 2024 by Siisurit e.U., Austria.
+# All rights reserved. Distributed under the MIT License.
 import re
 
 import pytest
 
 from check_done.command import check_done_command
-from check_done.common import configuration_info
+from check_done.config import configuration_info
 from tests._common import (
     HAS_ORGANIZATION_AUTHENTICATION_CONFIGURATION,
     REASON_SHOULD_HAVE_ORGANIZATION_AUTHENTICATION_CONFIGURATION,
@@ -48,24 +50,24 @@ def test_can_execute_check_done_warnings(caplog):
 def test_can_check_done_demo_project(caplog):
     is_exit_code_ok = check_done_command([]) == 0
     has_check_done_warning_messages = len(caplog.messages) >= 1
-    expected_warning_about_missing_assignee = r"(?=.*missing assignee)(?=.*#3 Warning: Closed issue without assignee)"
+    expected_warning_about_missing_assignee = r"(?=.*be assigned)(?=.*#3 Warning: Closed issue without assignee)"
     warning_about_missing_assignee = caplog.messages[0]
-    expected_warning_about_open_issue_with_dene_state = r"(?=.*not closed)(?=.*#4 Warning: Open issue with Done state)"
+    expected_warning_about_open_issue_with_dene_state = r"(?=.*be closed)(?=.*#4 Warning: Open issue with Done state)"
     warning_about_open_issue_with_dene_state = caplog.messages[1]
     expected_warning_about_missing_milestone = (
-        r"(?=.*missing milestone)(?=.*#11 Warning: Project item without milestone)"
+        r"(?=.*have a milestone)(?=.*#11 Warning: Project item without milestone)"
     )
     warning_about_missing_milestone = caplog.messages[2]
     expected_warning_about_unfinished_goals = (
-        r"(?=.*missing finished goals)(?=.*#8 Warning: project item with unfinished goals)"
+        r"(?=.*have all tasks completed)(?=.*#8 Warning: project item with unfinished goals)"
     )
     warning_about_unfinished_goals = caplog.messages[3]
     expected_warning_about_pull_request_with_missing_linked_issue = (
-        r"(?=.*missing linked issue)(?=.*#6 Warning: Pull request is missing linked issue)"
+        r"(?=.*have a linked issue)(?=.*#6 Warning: Pull request is missing linked issue)"
     )
     warning_about_pull_request_with_missing_linked_issue = caplog.messages[4]
     expected_warning_about_open_pull_request_with_done_state = (
-        r"(?=.*not closed)(?=.*#7 Warning: Open pull request with Done state)"
+        r"(?=.*be closed)(?=.*#7 Warning: Open pull request with Done state)"
     )
     warning_about_open_pull_request_with_done_state = caplog.messages[5]
     ok_project_item_titles = [

@@ -1,9 +1,11 @@
+# Copyright (C) 2024 by Siisurit e.U., Austria.
+# All rights reserved. Distributed under the MIT License.
 from enum import StrEnum
 from typing import Any
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, NonNegativeInt, field_validator
 
-from check_done.common import (
+from check_done.config import (
     ProjectOwnerType,
     configuration_info,
 )
@@ -42,7 +44,9 @@ class PageInfo(BaseModel):
     hasNextPage: bool
 
 
-class PaginatedQueryInfo(BaseModel):
+class QueryInfo(BaseModel):
+    """The nested content of the query and its pagination info in a paginated GraphQL query with nodes"""
+
     nodes: list[Any]
     page_info: PageInfo = Field(alias="pageInfo")
 
@@ -57,12 +61,12 @@ class PaginatedQueryInfo(BaseModel):
         return validated_nodes
 
 
-class ProjectV2NodeInfo(BaseModel):
+class ProjectV2Node(BaseModel):
     id: str
     number: NonNegativeInt
     typename: str = Field(alias="__typename")
-    fields: PaginatedQueryInfo | None = None
-    items: PaginatedQueryInfo | None = None
+    fields: QueryInfo | None = None
+    items: QueryInfo | None = None
 
 
 class ProjectV2Options(BaseModel):
@@ -70,7 +74,7 @@ class ProjectV2Options(BaseModel):
     name: str
 
 
-class ProjectV2SingleSelectFieldNodeInfo(BaseModel):  # TODO#13 Rename: ProjectV2SingleSelectFieldInfo
+class ProjectV2SingleSelectFieldNode(BaseModel):
     id: str
     name: str
     typename: str = Field(alias="__typename")
@@ -94,21 +98,21 @@ class MilestoneInfo(BaseModel):
     id: str
 
 
-class LinkedProjectItemNodeInfo(BaseModel):
+class LinkedProjectItemNode(BaseModel):
     number: NonNegativeInt
     title: str
 
 
 class LinkedProjectItemInfo(BaseModel):
-    nodes: list[LinkedProjectItemNodeInfo]
+    nodes: list[LinkedProjectItemNode]
 
 
 # NOTE: For simplicity, both issues and pull requests are treated the same under a generic "project item" type.
-#  Since all their underlying properties needed for checking, are essentially identical,
-#  there is no value in differentiating between them as long as the above continues to be the case.
+#  Since all their underlying properties needed for checking, are mostly identical.
 class ProjectItemInfo(BaseModel):
     """A generic type representing both issues and pull requests in a project board."""
 
+    # Shared between Issues and Pull Requests.
     typename: GithubProjectItemType = Field(alias="__typename")
     assignees: AssigneesInfo
     body_html: str = Field(alias="bodyHTML", default=None)
@@ -117,21 +121,23 @@ class ProjectItemInfo(BaseModel):
     repository: RepositoryInfo
     milestone: MilestoneInfo | None
     title: str
+
+    # Shared under different names, but only Pull Requests version is referenced since only that is checked.
     linked_project_item: LinkedProjectItemInfo = Field(alias="closingIssuesReferences", default=None)
 
 
-class ProjectV2ItemNodeInfo(BaseModel):  # TODO#13 Rename ProjectV2ItemInfo
+class ProjectV2ItemNode(BaseModel):
     content: ProjectItemInfo | _EmptyDict = None
     field_value_by_name: ProjectV2ItemProjectStatusInfo | None = Field(alias="fieldValueByName", default=None)
     typename: str = Field(alias="__typename")
 
 
 class NodeByIdInfo(BaseModel):
-    node: ProjectV2NodeInfo
+    node: ProjectV2Node
 
 
 class _ProjectsV2Info(BaseModel):
-    projects_v2: PaginatedQueryInfo = Field(alias="projectsV2")
+    projects_v2: QueryInfo = Field(alias="projectsV2")
 
 
 class ProjectOwnerInfo(BaseModel):
@@ -151,7 +157,7 @@ class _NodeTypeName(StrEnum):
 
 
 _NODE_TYPE_NAME_TO_INFO_CLASS_MAP = {
-    _NodeTypeName.ProjectV2.value: ProjectV2NodeInfo,
-    _NodeTypeName.ProjectV2SingleSelectField.value: ProjectV2SingleSelectFieldNodeInfo,
-    _NodeTypeName.ProjectV2SingleSelectField.ProjectV2Item: ProjectV2ItemNodeInfo,
+    _NodeTypeName.ProjectV2.value: ProjectV2Node,
+    _NodeTypeName.ProjectV2SingleSelectField.value: ProjectV2SingleSelectFieldNode,
+    _NodeTypeName.ProjectV2SingleSelectField.ProjectV2Item: ProjectV2ItemNode,
 }

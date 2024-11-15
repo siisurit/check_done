@@ -1,13 +1,14 @@
+# Copyright (C) 2024 by Siisurit e.U., Austria.
+# All rights reserved. Distributed under the MIT License.
 import os
 from pathlib import Path
 
 import pytest
 import yaml
 
-from check_done.common import (
+from check_done.config import (
     ConfigurationInfo,
     ProjectOwnerType,
-    YamlInfo,
     configuration_map_from_yaml_file,
     github_project_owner_type_and_project_owner_name_and_project_number_from_url_if_matches,
     resolved_environment_variables,
@@ -107,17 +108,13 @@ def test_fails_to_extract_github_project_owner_type_and_project_owner_name_and_p
 
 def test_can_validate_at_least_one_authentication_method_in_configuration():
     configuration_info_with_personal_token_authentication_only = ConfigurationInfo(
+        project_url="https://github.com/users/fake-username/projects/1",
         personal_access_token="fake_personal_token",
-        project_number=1,
-        project_owner_name="fake_project_owner_name",
-        project_owner_type=str(ProjectOwnerType.User.value),
     )
     configuration_info_with_organization_authentication_config_only = ConfigurationInfo(
+        project_url="https://github.com/orgs/fake-organization/projects/1",
         check_done_github_app_id="fake_app_id",
         check_done_github_app_private_key="fake_private_key",
-        project_number=1,
-        project_owner_name="another_fake_project_owner_name",
-        project_owner_type=str(ProjectOwnerType.Organization.value),
     )
     assert isinstance(configuration_info_with_personal_token_authentication_only, ConfigurationInfo)
     assert isinstance(configuration_info_with_organization_authentication_config_only, ConfigurationInfo)
@@ -126,37 +123,42 @@ def test_can_validate_at_least_one_authentication_method_in_configuration():
 def test_fails_to_validate_at_least_one_authentication_method_in_configuration():
     with pytest.raises(ValueError, match="At least one authentication method must be configured."):
         ConfigurationInfo(
-            project_number=1,
-            project_owner_name="fake_project_owner_name",
-            project_owner_type=str(ProjectOwnerType.Organization.value),
+            project_url="https://github.com/users/fake-username/projects/1",
         )
 
 
 def test_fails_to_validate_organization_authentication_method_with_one_missing_value_in_configuration():
     with pytest.raises(ValueError, match="At least one authentication method must be configured."):
         ConfigurationInfo(
+            project_url="https://github.com/orgs/fake-organization/projects/1",
             check_done_github_app_id="fake_check_done_github_app_id",
-            project_number=1,
-            project_owner_name="fake_project_owner_name",
-            project_owner_type=str(ProjectOwnerType.Organization.value),
         )
 
 
 def test_fails_to_validate_organization_authentication_method_with_another_missing_value_in_configuration():
     with pytest.raises(ValueError, match="At least one authentication method must be configured."):
         ConfigurationInfo(
+            project_url="https://github.com/orgs/fake-organization/projects/1",
             check_done_github_app_private_key="fake_check_done_github_app_private_key",
-            project_number=1,
-            project_owner_name="fake_project_owner_name",
-            project_owner_type=str(ProjectOwnerType.Organization.value),
         )
 
 
 def test_can_get_value_from_env():
     envvar_name = "FAKE_CHECK_DONE_GITHUB_PROJECT_URL"
-    os.environ[envvar_name] = "example.com"
-    yaml_info_with_env_value = YamlInfo(
+    envvar_value = "https://github.com/users/fake-username/projects/1"
+    os.environ[envvar_name] = envvar_value
+    configuration_info_with_env_value = ConfigurationInfo(
         project_url="${FAKE_CHECK_DONE_GITHUB_PROJECT_URL}",
         personal_access_token="fake_personal_token",
     )
-    assert yaml_info_with_env_value.project_url == "example.com"
+    assert configuration_info_with_env_value.project_url == envvar_value
+
+
+def test_can_get_project_details_from_url():
+    configuration_info = ConfigurationInfo(
+        project_url="https://github.com/users/fake-username/projects/1",
+        personal_access_token="fake_personal_token",
+    )
+    assert configuration_info.project_number == 1
+    assert configuration_info.project_owner_name == "fake-username"
+    assert configuration_info.project_owner_type == "users"

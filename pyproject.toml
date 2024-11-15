@@ -38,7 +38,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.10, <3.13"  # NOTE We cannot use <4 because of coveralls.
+python = ">=3.10, <3.14"  # NOTE We cannot use <4 because of coveralls.
 pygments = "^2"
 chardet = "^5"
 rich = ">=9, <14"
@@ -51,7 +51,7 @@ pyjwt = "^2.9.0"
 requests-mock = "^1.12.1"
 
 [tool.poetry.dev-dependencies]
-coveralls = "^4"
+# coveralls = "^4" TODO: Re-enable once support for python 3.13 is added. See https://github.com/TheKevJames/coveralls-python/pull/542
 coverage = "^7"
 pytest = "^8"
 pytest-cov = "^5"
