@@ -17,21 +17,18 @@ from tests._common import (
 )
 
 
-@pytest.mark.order(index=1)
 def test_can_show_help():
     with pytest.raises(SystemExit) as error_info:
         check_done_command(["--help"])
     assert error_info.value.code == 0
 
 
-@pytest.mark.order(index=2)
 def test_can_show_version():
     with pytest.raises(SystemExit) as error_info:
         check_done_command(["--version"])
     assert error_info.value.code == 0
 
 
-@pytest.mark.order(index=3)
 @pytest.mark.skipif(
     not HAS_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
     reason=REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
@@ -42,7 +39,6 @@ def test_can_set_root_dir_argument():
     assert exit_code == 0
 
 
-@pytest.mark.order(index=4)
 @pytest.mark.skipif(
     not HAS_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
     reason=REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
@@ -54,7 +50,6 @@ def test_can_execute_check_done_command_and_get_warnings(caplog):
     assert check_done_warning_messages >= 1
 
 
-@pytest.mark.order(index=5)
 @pytest.mark.skipif(
     not HAS_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
     reason=REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
