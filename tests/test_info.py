@@ -10,7 +10,7 @@ from check_done.info import (
 
 
 def test_can_resolve_nodes():
-    nodes = [
+    fake_nodes = [
         {"__typename": "ProjectV2", "id": "fake_id", "number": 1},
         {
             "__typename": "ProjectV2SingleSelectField",
@@ -20,8 +20,14 @@ def test_can_resolve_nodes():
         },
         {"__typename": "ProjectV2Item", "type": "ISSUE", "content": {}, "field_value_by_name": None},
     ]
-    page_info = PageInfo(endCursor="a", hasNextPage=False)
-    query_info = QueryInfo(nodes=nodes, pageInfo=page_info)
-    assert isinstance(query_info.nodes[0], ProjectV2Node)
-    assert isinstance(query_info.nodes[1], ProjectV2SingleSelectFieldNode)
-    assert isinstance(query_info.nodes[2], ProjectV2ItemNode)
+    fake_page_info = PageInfo(endCursor="a", hasNextPage=False)
+    fake_query_info = QueryInfo(nodes=fake_nodes, pageInfo=fake_page_info)
+
+    fake_project_v2_node = fake_query_info.nodes[0]
+    assert isinstance(fake_project_v2_node, ProjectV2Node)
+
+    fake_project_v2_single_select_field_node = fake_query_info.nodes[1]
+    assert isinstance(fake_project_v2_single_select_field_node, ProjectV2SingleSelectFieldNode)
+
+    fake_project_v2_item_node = fake_query_info.nodes[2]
+    assert isinstance(fake_project_v2_item_node, ProjectV2ItemNode)

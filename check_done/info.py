@@ -5,16 +5,6 @@ from typing import Any
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, NonNegativeInt, field_validator
 
-from check_done.config import (
-    ProjectOwnerType,
-    configuration_info,
-)
-
-PROJECT_OWNER_TYPE = configuration_info().project_owner_type
-PROJECT_OWNER_NAME = configuration_info().project_owner_name
-PROJECT_NUMBER = configuration_info().project_number
-IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION = ProjectOwnerType.Organization == PROJECT_OWNER_TYPE
-
 
 class NodesTypeName(StrEnum):
     CustomField = "CustomField"
@@ -122,8 +112,8 @@ class ProjectItemInfo(BaseModel):
     milestone: MilestoneInfo | None
     title: str
 
-    # Shared under different names, but only Pull Requests version is referenced since only that is checked.
-    linked_project_item: LinkedProjectItemInfo = Field(alias="closingIssuesReferences", default=None)
+    # Only set for pull requests
+    closing_issues_references: LinkedProjectItemInfo = Field(alias="closingIssuesReferences", default=None)
 
 
 class ProjectV2ItemNode(BaseModel):

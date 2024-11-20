@@ -1,0 +1,19 @@
+{
+  "data": {
+    "user": {
+      "projectsV2": {
+        "nodes": [
+          {
+            "__typename": "ProjectV2",
+            "id": "dummy_id",
+            "number": 1
+          }
+        ],
+        "pageInfo": {
+          "endCursor": "AA",
+          "hasNextPage": false
+        }
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # check_done
 
-check_done is a command line tool to check that finished issues and pull requests in a GitHub project board are really done.
+check_done is a command line tool to check that finished issues and pull requests in a GitHub project board column are really done.
 
 ## Configuration
 

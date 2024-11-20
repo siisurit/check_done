@@ -4,12 +4,9 @@ import logging
 
 import requests
 
-from check_done.config import configuration_info
+from check_done.config import ConfigurationInfo
 from check_done.graphql import GraphQlQuery, HttpBearerAuth, query_infos
 from check_done.info import (
-    IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION,
-    PROJECT_NUMBER,
-    PROJECT_OWNER_NAME,
     NodeByIdInfo,
     ProjectItemInfo,
     ProjectOwnerInfo,
@@ -17,54 +14,71 @@ from check_done.info import (
     ProjectV2Node,
     ProjectV2SingleSelectFieldNode,
 )
-from check_done.organization_authentication import access_token_from_organization
+from check_done.organization_authentication import resolve_organization_access_token
 
-_PROJECT_STATUS_NAME_TO_CHECK = configuration_info().project_status_name_to_check
-_PERSONAL_ACCESS_TOKEN = configuration_info().personal_access_token
-_ORGANIZATION_ACCESS_TOKEN = (
-    access_token_from_organization(PROJECT_OWNER_NAME) if IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION else None
-)
-_ACCESS_TOKEN = _ORGANIZATION_ACCESS_TOKEN or _PERSONAL_ACCESS_TOKEN
 _GITHUB_PROJECT_STATUS_FIELD_NAME = "Status"
 logger = logging.getLogger(__name__)
 
 
-def done_project_items_info() -> list[ProjectItemInfo]:
+def done_project_items_info(configuration_info: ConfigurationInfo) -> list[ProjectItemInfo]:
+    project_owner_name = configuration_info.project_owner_name
+
+    is_project_owner_of_type_organization = configuration_info.is_project_owner_of_type_organization
+    if is_project_owner_of_type_organization:
+        check_done_github_app_id = configuration_info.check_done_github_app_id
+        check_done_github_app_private_key = configuration_info.check_done_github_app_private_key
+        access_token = resolve_organization_access_token(
+            project_owner_name, check_done_github_app_id, check_done_github_app_private_key
+        )
+    else:
+        access_token = configuration_info.personal_access_token
+
     with requests.Session() as session:
         session.headers = {"Accept": "application/vnd.github+json"}
-        session.auth = HttpBearerAuth(_ACCESS_TOKEN)
+        session.auth = HttpBearerAuth(access_token)
 
         project_query_name = (
             GraphQlQuery.ORGANIZATION_PROJECTS.name
-            if IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION
+            if is_project_owner_of_type_organization
             else GraphQlQuery.USER_PROJECTS.name
         )
-        project_infos = query_infos(ProjectOwnerInfo, project_query_name, session)
-        project_id = matching_project_id(project_infos)
-        project_single_select_field_infos = query_infos(
-            NodeByIdInfo, GraphQlQuery.PROJECT_SINGLE_SELECT_FIELDS.name, session, project_id
-        )
-        project_item_infos = query_infos(NodeByIdInfo, GraphQlQuery.PROJECT_V2_ITEMS.name, session, project_id)
+        project_infos = query_infos(ProjectOwnerInfo, project_query_name, session, project_owner_name)
 
+        project_number = configuration_info.project_number
+        project_id = matching_project_id(project_infos, project_number, project_owner_name)
+        project_single_select_field_infos = query_infos(
+            NodeByIdInfo, GraphQlQuery.PROJECT_SINGLE_SELECT_FIELDS.name, session, project_owner_name, project_id
+        )
+
+        project_item_infos = query_infos(
+            NodeByIdInfo, GraphQlQuery.PROJECT_V2_ITEMS.name, session, project_owner_name, project_id
+        )
+
+    project_status_name_to_check = configuration_info.project_status_name_to_check
     project_status_option_id = matching_project_state_option_id(
-        project_single_select_field_infos, _PROJECT_STATUS_NAME_TO_CHECK
+        project_single_select_field_infos,
+        project_status_name_to_check,
+        project_number,
+        project_owner_name,
     )
     result = filtered_project_item_infos_by_done_status(project_item_infos, project_status_option_id)
     return result
 
 
-def matching_project_id(project_infos: list[ProjectV2Node]) -> str:
+def matching_project_id(project_infos: list[ProjectV2Node], project_number: int, project_owner_name: str) -> str:
     try:
-        return next(str(project_info.id) for project_info in project_infos if project_info.number == PROJECT_NUMBER)
+        return next(str(project_info.id) for project_info in project_infos if project_info.number == project_number)
     except StopIteration:
         raise ValueError(
-            f"Cannot find a project with number '{PROJECT_NUMBER}', owned by '{PROJECT_OWNER_NAME}'."
+            f"Cannot find a project with number '{project_number}', owned by '{project_owner_name}'."
         ) from None
 
 
 def matching_project_state_option_id(
     project_single_select_field_infos: list[ProjectV2SingleSelectFieldNode],
     project_status_name_to_check: str | None,
+    project_number: int,
+    project_owner_name: str,
 ) -> str:
     try:
         status_options = next(
@@ -74,8 +88,8 @@ def matching_project_state_option_id(
         )
     except StopIteration:
         raise ValueError(
-            f"Cannot find a project status selection field in the GitHub project with number `{PROJECT_NUMBER}` "
-            f"owned by `{PROJECT_OWNER_NAME}`."
+            f"Cannot find a project status selection field in the GitHub project with number `{project_number}` "
+            f"owned by `{project_owner_name}`."
         ) from None
     if project_status_name_to_check:
         logger.info(f"Checking project items with status matching: '{project_status_name_to_check}'")
@@ -90,13 +104,14 @@ def matching_project_state_option_id(
                 option.name for field_info in project_single_select_field_infos for option in field_info.options
             ]
             raise ValueError(
-                f"Cannot find the project status matching name '{_PROJECT_STATUS_NAME_TO_CHECK}' "
-                f"in the GitHub project with number `{PROJECT_NUMBER}` owned by `{PROJECT_OWNER_NAME}`. "
-                f"Available options are: {project_status_options_names}"
+                f"Cannot find the project status matching name {project_status_name_to_check!r} "
+                f"in the GitHub project with number '{project_number}' owned by {project_owner_name!r}. "
+                f"Available options are: {project_status_options_names!r}"
             ) from None
     else:
-        logger.info("Checking project items in the last status/board column.")
-        result = status_options[-1].id
+        last_status_option = status_options[-1]
+        logger.info(f"Checking project items with the last project status selected: {last_status_option.name!r}.")
+        result = last_status_option.id
     return result
 
 
@@ -112,9 +127,4 @@ def filtered_project_item_infos_by_done_status(
         )
         if has_project_state_option:
             result.append(project_item_info.content)
-    if len(result) < 1:
-        logger.warning(
-            f"No project items found for the specified project status in the GitHub project "
-            f"with number '{PROJECT_NUMBER}' owned by '{PROJECT_OWNER_NAME}'."
-        )
     return result

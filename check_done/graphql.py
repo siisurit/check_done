@@ -11,13 +11,30 @@ from requests import HTTPError, Response, Session
 from requests.auth import AuthBase
 
 from check_done.info import (
-    PROJECT_OWNER_NAME,
     QueryInfo,
 )
 
-_GRAPHQL_ENDPOINT = "https://api.github.com/graphql"
+GRAPHQL_ENDPOINT = "https://api.github.com/graphql"
 _MAX_ENTRIES_PER_PAGE = 100
 _PATH_TO_QUERIES = Path(__file__).parent / "queries"
+
+
+class GraphQlError(Exception):
+    pass
+
+
+class HttpBearerAuth(AuthBase):
+    # Source:
+    # <https://stackoverflow.com/questions/29931671/making-an-api-call-in-python-with-an-api-that-requires-a-bearer-token>
+    def __init__(self, token):
+        self.token = token
+
+    def __call__(self, request):
+        request.headers["Authorization"] = "Bearer " + self.token
+        return request
+
+
+# TODO#13: Is the lru_cache useful? There shouldn't be multiple identical queries due to GraphQL pagination.
 
 
 @lru_cache
@@ -25,6 +42,8 @@ def minimized_graphql(graphql_query: str) -> str:
     single_spaced_query = re.sub(r"\s+", " ", graphql_query)
     formatted_query = re.sub(r"\s*([{}()\[\]:,])\s*", r"\1", single_spaced_query)
     result = formatted_query.strip()
+    if result == "":
+        raise GraphQlError("GraphQL query is empty.")
     return result
 
 
@@ -48,9 +67,15 @@ class GraphQlQuery(Enum):
         return GraphQlQuery[name].value
 
 
-def query_infos(base_model: type[BaseModel], query_name: str, session: Session, project_id: str | None = None) -> list:
+def query_infos(
+    base_model: type[BaseModel],
+    query_name: str,
+    session: Session,
+    project_owner_name: str,
+    project_id: str | None = None,
+) -> list:
     result = []
-    variables = {"login": PROJECT_OWNER_NAME, "maxEntriesPerPage": _MAX_ENTRIES_PER_PAGE}
+    variables = {"login": project_owner_name, "maxEntriesPerPage": _MAX_ENTRIES_PER_PAGE}
     if project_id is not None:
         variables["projectId"] = project_id
     after = None
@@ -63,10 +88,10 @@ def query_infos(base_model: type[BaseModel], query_name: str, session: Session, 
             "variables": variables,
             "query": query,
         }
-        response = session.post(_GRAPHQL_ENDPOINT, json=json_payload_map)
+        response = session.post(GRAPHQL_ENDPOINT, json=json_payload_map)
         response_map = checked_graphql_data_map(response)
         response_info = base_model(**response_map)
-        query_info = get_query_info_from_response_info(response_info)
+        query_info = query_info_from_response_info(response_info)
         nodes_info = query_info.nodes
         page_info = query_info.page_info
         after = page_info.endCursor
@@ -75,15 +100,15 @@ def query_infos(base_model: type[BaseModel], query_name: str, session: Session, 
     return result
 
 
-def get_query_info_from_response_info(base_model: BaseModel) -> QueryInfo:
+def query_info_from_response_info(base_model: BaseModel) -> QueryInfo:
     if isinstance(base_model, QueryInfo):
         return base_model
     for model_field_name in base_model.model_fields_set:
-        field_value = getattr(base_model, model_field_name)
-        if isinstance(field_value, BaseModel):
-            page_info = get_query_info_from_response_info(field_value)
-            if page_info is not None:
-                return page_info
+        field_model = getattr(base_model, model_field_name)
+        if isinstance(field_model, BaseModel):
+            result = query_info_from_response_info(field_model)
+            if result is not None:
+                return result
     raise ValueError(
         f"Could not find fields matching the {QueryInfo.__name__} model with fields "
         f"`{QueryInfo.model_fields.keys()}` in: {base_model}"
@@ -107,18 +132,3 @@ def checked_graphql_data_map(response: Response) -> dict[str, Any | None]:
     if not isinstance(result, dict):
         raise GraphQlError(f"GraphQL data must be a map but is: {result}.")
     return result
-
-
-class GraphQlError(Exception):
-    pass
-
-
-class HttpBearerAuth(AuthBase):
-    # Source:
-    # <https://stackoverflow.com/questions/29931671/making-an-api-call-in-python-with-an-api-that-requires-a-bearer-token>
-    def __init__(self, token):
-        self.token = token
-
-    def __call__(self, request):
-        request.headers["Authorization"] = "Bearer " + self.token
-        return request
