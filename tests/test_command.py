@@ -15,7 +15,8 @@ from tests._common import (
     HAS_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
     REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
 )
-
+logging.root.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 @pytest.mark.order(index=1)
 def test_can_show_help():
@@ -37,6 +38,7 @@ def test_can_show_version():
     reason=REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
 )
 def test_can_set_root_dir_argument():
+    logger.debug(os.environ["CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK"])
     root_repository_path = str(resolve_root_repository_path())
     exit_code = check_done_command([f"--root-dir={root_repository_path}"])
     assert exit_code == 0
@@ -49,9 +51,9 @@ def test_can_set_root_dir_argument():
 )
 def test_can_execute_check_done_command_and_get_warnings(caplog):
     exit_code = check_done_command([])
+    logger.debug(os.environ["CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK"])
     assert exit_code == 0
-    debug_envar = os.environ["CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK"]
-    print(debug_envar)
+    logger.debug(os.environ["CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK"])
     print(caplog.text)
     check_done_warning_messages = len(caplog.messages)
     assert check_done_warning_messages >= 1
@@ -64,10 +66,10 @@ def test_can_execute_check_done_command_and_get_warnings(caplog):
 )
 def test_can_check_done_demo_project(caplog):
     exit_code = check_done_command([])
+    logger.debug(os.environ["CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK"])
     assert exit_code == 0
 
-    debug_envar = os.environ["CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK"]
-    print(debug_envar)
+    logger.debug(os.environ["CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK"])
     print(caplog.text)
     check_done_warning_messages = len(caplog.messages)
     assert check_done_warning_messages >= 1
