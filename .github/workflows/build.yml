@@ -43,6 +43,8 @@ jobs:
           CHECK_DONE_GITHUB_APP_PRIVATE_KEY: |
             ${{ secrets.CHECK_DONE_GITHUB_APP_PRIVATE_KEY }}
           CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK: ${{ secrets.CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK }}
+          CHECK_DONE_PERSONAL_ACCESS_TOKEN: ${{ secrets.CHECK_DONE_PERSONAL_ACCESS_TOKEN }}
+          CHECK_DONE_USER_GITHUB_PROJECT_URL: ${{ secrets.CHECK_DONE_USER_GITHUB_PROJECT_URL }}
         run: |
           poetry run pytest --cov=check_done --cov-branch
 
