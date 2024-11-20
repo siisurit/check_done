@@ -15,8 +15,7 @@ from tests._common import (
     HAS_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
     REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
 )
-logging.root.setLevel(logging.DEBUG)
-logger = logging.getLogger(__name__)
+
 
 @pytest.mark.order(index=1)
 def test_can_show_help():
@@ -38,7 +37,6 @@ def test_can_show_version():
     reason=REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
 )
 def test_can_set_root_dir_argument():
-    logger.debug(os.environ["CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK"][:2])
     root_repository_path = str(resolve_root_repository_path())
     exit_code = check_done_command([f"--root-dir={root_repository_path}"])
     assert exit_code == 0
@@ -51,10 +49,7 @@ def test_can_set_root_dir_argument():
 )
 def test_can_execute_check_done_command_and_get_warnings(caplog):
     exit_code = check_done_command([])
-    logger.debug(os.environ["CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK"][:2])
     assert exit_code == 0
-    logger.debug(os.environ["CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK"][:2])
-    print(caplog.text)
     check_done_warning_messages = len(caplog.messages)
     assert check_done_warning_messages >= 1
 
@@ -66,11 +61,8 @@ def test_can_execute_check_done_command_and_get_warnings(caplog):
 )
 def test_can_check_done_demo_project(caplog):
     exit_code = check_done_command([])
-    logger.debug(os.environ["CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK"][:2])
     assert exit_code == 0
 
-    logger.debug(os.environ["CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK"][:2])
-    print(caplog.text)
     check_done_warning_messages = len(caplog.messages)
     assert check_done_warning_messages >= 1
 
@@ -156,13 +148,10 @@ def test_can_log_info_message_if_selected_project_status_is_empty(caplog):
     with caplog.at_level(logging.INFO):
         envvar_name = "CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK"
         original_envar_value = os.environ[envvar_name]
-        print(os.environ[envvar_name])
         empty_project_status_name_in_check_done_demo_project = "In progress"
         os.environ[envvar_name] = empty_project_status_name_in_check_done_demo_project
-        print(os.environ[envvar_name])
         check_done_command([])
         os.environ[envvar_name] = original_envar_value
-        print(os.environ[envvar_name])
         assert "Nothing to check. Project has no items in the selected project status." in caplog.messages[1]
 
 
@@ -174,11 +163,8 @@ def test_can_log_info_message_if_no_warnings_were_found_for_checked_project_item
     with caplog.at_level(logging.INFO):
         envvar_name = "CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK"
         original_envar_value = os.environ[envvar_name]
-        print(os.environ[envvar_name])
         project_status_name_in_check_done_demo_project_with_only_correct_issues = "Archived"
         os.environ[envvar_name] = project_status_name_in_check_done_demo_project_with_only_correct_issues
-        print(os.environ[envvar_name])
         check_done_command([])
         os.environ[envvar_name] = original_envar_value
-        print(os.environ[envvar_name])
         assert "All project items are correct" in caplog.messages[1]
