@@ -53,15 +53,15 @@ REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED = (
 )
 
 
-def fake_project_v2_item_node(status: str = "Done", option_id: str = "a1", closed: bool = True):
+def new_fake_project_v2_item_node(status: str = "Done", option_id: str = "a1", closed: bool = True):
     return ProjectV2ItemNode(
         __typename="ProjectV2Item",
-        content=fake_project_item_info(closed=closed),
+        content=new_fake_project_item_info(closed=closed),
         fieldValueByName=ProjectV2ItemProjectStatusInfo(status=status, optionId=option_id),
     )
 
 
-def fake_project_item_info(
+def new_fake_project_item_info(
     has_no_milestone: bool = False,
     assignees_count: int = 1,
     body_html: str = "",

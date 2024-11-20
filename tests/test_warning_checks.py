@@ -10,14 +10,14 @@ from check_done.warning_checks import (
     warning_reason_if_unassigned,
     warnings_for_done_project_items,
 )
-from tests._common import fake_project_item_info
+from tests._common import new_fake_project_item_info
 
 
 def test_can_resolve_warnings_for_done_project_items():
     fake_done_project_items = [
-        fake_project_item_info(closed=False),
-        fake_project_item_info(assignees_count=0, closing_issues_references=[]),
-        fake_project_item_info(has_no_milestone=True, assignees_count=0, closing_issues_references=[]),
+        new_fake_project_item_info(closed=False),
+        new_fake_project_item_info(assignees_count=0, closing_issues_references=[]),
+        new_fake_project_item_info(has_no_milestone=True, assignees_count=0, closing_issues_references=[]),
     ]
     fake_warnings = warnings_for_done_project_items(fake_done_project_items)
 
@@ -43,19 +43,19 @@ def test_warnings_for_done_project_items_with_empty_list_of_done_project_items()
 
 
 def test_can_compose_sentence_from_project_item_warning_reasons():
-    project_item_with_one_warning_reason = fake_project_item_info(closing_issues_references=[])
+    project_item_with_one_warning_reason = new_fake_project_item_info(closing_issues_references=[])
     single_warning_reason_string = sentence_from_project_item_warning_reasons(
         project_item_with_one_warning_reason, ["have a closing issue reference"]
     )
     assert "Project item should have a closing issue reference." in single_warning_reason_string
 
-    project_item_with_two_warning_reasons = fake_project_item_info(assignees_count=0, closing_issues_references=[])
+    project_item_with_two_warning_reasons = new_fake_project_item_info(assignees_count=0, closing_issues_references=[])
     double_warning_reason_string = sentence_from_project_item_warning_reasons(
         project_item_with_two_warning_reasons, ["be assigned", "have a closing issue reference"]
     )
     assert "be assigned and have a closing issue reference." in double_warning_reason_string
 
-    project_item_with_three_warning_reasons = fake_project_item_info(
+    project_item_with_three_warning_reasons = new_fake_project_item_info(
         has_no_milestone=True, assignees_count=0, milestone=None, closing_issues_references=[]
     )
     triple_warning_reason_string = sentence_from_project_item_warning_reasons(
@@ -66,26 +66,26 @@ def test_can_compose_sentence_from_project_item_warning_reasons():
 
 
 def test_can_return_warning_reason_if_project_item_is_open():
-    open_project_item = fake_project_item_info(closed=False)
+    open_project_item = new_fake_project_item_info(closed=False)
     assert warning_reason_if_open(open_project_item) is not None
 
-    closed_project_item = fake_project_item_info(closed=True)
+    closed_project_item = new_fake_project_item_info(closed=True)
     assert warning_reason_if_open(closed_project_item) is None
 
 
 def test_can_return_warning_reason_if_project_item_is_unassigned():
-    unassigned_project_item = fake_project_item_info(assignees_count=0)
+    unassigned_project_item = new_fake_project_item_info(assignees_count=0)
     assert warning_reason_if_unassigned(unassigned_project_item) is not None
 
-    assigned_project_item = fake_project_item_info(assignees_count=1)
+    assigned_project_item = new_fake_project_item_info(assignees_count=1)
     assert warning_reason_if_unassigned(assigned_project_item) is None
 
 
 def test_can_return_warning_reason_if_project_item_is_missing_milestone():
-    project_item_with_missing_milestone = fake_project_item_info(has_no_milestone=True)
+    project_item_with_missing_milestone = new_fake_project_item_info(has_no_milestone=True)
     assert warning_reason_if_missing_milestone(project_item_with_missing_milestone) is not None
 
-    project_item_with_milestone = fake_project_item_info(has_no_milestone=False)
+    project_item_with_milestone = new_fake_project_item_info(has_no_milestone=False)
     assert warning_reason_if_missing_milestone(project_item_with_milestone) is None
 
 
@@ -102,7 +102,7 @@ def test_can_return_warning_reason_if_project_item_has_uncompleted_tasks():
     </ul>
     """
 
-    project_item_with_uncompleted_task = fake_project_item_info(body_html=html_with_an_uncompleted_task)
+    project_item_with_uncompleted_task = new_fake_project_item_info(body_html=html_with_an_uncompleted_task)
     assert warning_reason_if_tasks_are_uncompleted(project_item_with_uncompleted_task) is not None
 
     html_with_completed_tasks = """
@@ -116,15 +116,15 @@ def test_can_return_warning_reason_if_project_item_has_uncompleted_tasks():
         </li>
     </ul>
     """
-    project_item_with_completed_tasks = fake_project_item_info(body_html=html_with_completed_tasks)
+    project_item_with_completed_tasks = new_fake_project_item_info(body_html=html_with_completed_tasks)
     assert warning_reason_if_tasks_are_uncompleted(project_item_with_completed_tasks) is None
 
-    project_item_with_empty_html_body = fake_project_item_info()
+    project_item_with_empty_html_body = new_fake_project_item_info()
     assert warning_reason_if_tasks_are_uncompleted(project_item_with_empty_html_body) is None
 
 
 def test_can_return_warning_reason_if_project_item_is_missing_closing_issue_reference_in_pul_request():
-    pull_request_with_missing_closing_issue_reference = fake_project_item_info(closing_issues_references=[])
+    pull_request_with_missing_closing_issue_reference = new_fake_project_item_info(closing_issues_references=[])
     assert (
         warning_reason_if_missing_closing_issue_reference_in_pull_request(
             pull_request_with_missing_closing_issue_reference
@@ -132,7 +132,7 @@ def test_can_return_warning_reason_if_project_item_is_missing_closing_issue_refe
         is not None
     )
 
-    issue_is_missing_closed_by_pull_request_reference = fake_project_item_info(
+    issue_is_missing_closed_by_pull_request_reference = new_fake_project_item_info(
         typename=GithubProjectItemType.issue, closing_issues_references=[]
     )
     assert (
@@ -142,7 +142,7 @@ def test_can_return_warning_reason_if_project_item_is_missing_closing_issue_refe
         is None
     )
 
-    pull_request_with_closing_issue_reference = fake_project_item_info()
+    pull_request_with_closing_issue_reference = new_fake_project_item_info()
     assert (
         warning_reason_if_missing_closing_issue_reference_in_pull_request(pull_request_with_closing_issue_reference)
         is None

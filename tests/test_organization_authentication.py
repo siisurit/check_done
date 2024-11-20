@@ -42,7 +42,7 @@ def test_can_resolve_organization_access_token():
     )
 
 
-def test_mock_resolve_organization_access_token():
+def test_can_resolve_organization_access_token_from_bad_requests():
     with requests_mock.Mocker() as mock:
         mock.get(
             f"https://api.github.com/orgs/{_DUMMY_ORGANIZATION_NAME}/installation",
@@ -85,14 +85,14 @@ def test_fails_to_resolve_check_done_github_app_installation_id():
         resolve_check_done_github_app_installation_id(session, _DUMMY_ORGANIZATION_NAME)
 
 
-def test_mock_fails_to_resolve_check_done_github_app_installation_id():
+def test_fails_to_resolve_check_done_github_app_installation_id_from_bad_request():
     with requests_mock.Mocker() as mock:
         mock.get(f"https://api.github.com/orgs/{_DUMMY_ORGANIZATION_NAME}/installation", status_code=400)
         with pytest.raises(AuthenticationError, match="Could not retrieve installation ID: status=400 "):
             resolve_organization_access_token(_DUMMY_ORGANIZATION_NAME, _DUMMY_GITHUB_APP_ID, _FAKE_PEM_PRIVATE_KEY)
 
 
-def test_mock_fails_to_resolve_access_token_from_check_done_github_app_installation_id():
+def test_fails_to_resolve_access_token_from_check_done_github_app_installation_id():
     with requests_mock.Mocker() as mock:
         mock.get(
             f"https://api.github.com/orgs/{_DUMMY_ORGANIZATION_NAME}/installation",

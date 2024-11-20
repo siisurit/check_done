@@ -24,7 +24,7 @@ from tests._common import (
     ENVVAR_DEMO_CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK,
     HAS_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
     REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
-    fake_project_v2_item_node,
+    new_fake_project_v2_item_node,
 )
 
 _HAS_PROJECT_STATUS_NAME_TO_CHECK = DEMO_CHECK_DONE_GITHUB_PROJECT_STATUS_NAME_TO_CHECK is not None
@@ -184,10 +184,10 @@ def test_can_resolve_filtered_project_item_infos_by_done_status():
     in_progress_project_status_id = "a1"
     done_project_status_id = "b2"
     fake_done_issues_node_infos = [
-        fake_project_v2_item_node(option_id=in_progress_project_status_id, closed=True),
-        fake_project_v2_item_node(option_id=in_progress_project_status_id, closed=False),
-        fake_project_v2_item_node(option_id=done_project_status_id, closed=True),
-        fake_project_v2_item_node(option_id=done_project_status_id, closed=False),
+        new_fake_project_v2_item_node(option_id=in_progress_project_status_id, closed=True),
+        new_fake_project_v2_item_node(option_id=in_progress_project_status_id, closed=False),
+        new_fake_project_v2_item_node(option_id=done_project_status_id, closed=True),
+        new_fake_project_v2_item_node(option_id=done_project_status_id, closed=False),
     ]
     done_issue_infos = filtered_project_item_infos_by_done_status(fake_done_issues_node_infos, done_project_status_id)
     assert len(done_issue_infos) == 2
