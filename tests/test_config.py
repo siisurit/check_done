@@ -1,20 +1,21 @@
 # Copyright (C) 2024 by Siisurit e.U., Austria.
 # All rights reserved. Distributed under the MIT License.
 import os
+import tempfile
 from pathlib import Path
 
 import pytest
 import yaml
 
 from check_done.config import (
-    CONFIG_FILE_NAME,
+    CONFIG_BASE_NAME,
     ConfigurationInfo,
+    default_config_path,
     github_project_owner_name_and_project_number_and_is_project_owner_of_type_organization_from_url_if_matches,
     map_from_yaml_file_path,
-    resolve_configuration_yaml_file_path_from_root_path,
-    resolve_root_repository_path,
     resolved_environment_variables,
 )
+from tests._common import change_current_folder
 
 _TEST_DATA_BASE_FOLDER_FOR_MAP_FROM_YAML_FILE_TESTS = (
     Path(__file__).parent / "data" / "test_configuration_map_from_yaml"
@@ -173,19 +174,19 @@ def test_can_resolve_project_details_from_organization_project_url():
     assert configuration_info.project_owner_name == "fake-organization-name"
 
 
-def test_can_resolve_root_repository_path():
-    root_repository_path = resolve_root_repository_path()
-    assert "check_done" in str(root_repository_path)
+def test_can_resolve_config_default_path():
+    with tempfile.TemporaryDirectory() as temp_folder, change_current_folder(temp_folder):
+        current_folder = Path(os.getcwd())
+        expected_config_path = (current_folder / CONFIG_BASE_NAME).with_suffix(".yaml")
+        expected_config_path.write_text("")
+        actual_config_path = default_config_path()
+    assert actual_config_path == expected_config_path
 
 
-def test_can_resolve_configuration_yaml_file_path_from_root_path():
-    root_path = resolve_root_repository_path()
-    resolved_configuration_yaml_file_path_from_root_path = resolve_configuration_yaml_file_path_from_root_path(
-        root_path
-    )
-    assert root_path / CONFIG_FILE_NAME == resolved_configuration_yaml_file_path_from_root_path
-
-
-def test_fails_to_resolve_configuration_yaml_file_path_from_root_path():
-    with pytest.raises(FileNotFoundError):
-        resolve_configuration_yaml_file_path_from_root_path(Path("dummy_root_path"))
+def test_fails_on_missing_default_config_path():
+    with (
+        tempfile.TemporaryDirectory() as temp_folder,
+        change_current_folder(temp_folder),
+        pytest.raises(FileNotFoundError),
+    ):
+        default_config_path()

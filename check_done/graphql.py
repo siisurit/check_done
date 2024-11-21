@@ -34,9 +34,6 @@ class HttpBearerAuth(AuthBase):
         return request
 
 
-# TODO#13: Is the lru_cache useful? There shouldn't be multiple identical queries due to GraphQL pagination.
-
-
 @lru_cache
 def minimized_graphql(graphql_query: str) -> str:
     single_spaced_query = re.sub(r"\s+", " ", graphql_query)

@@ -1,18 +1,69 @@
 # check_done
 
-check_done is a command line tool to check that finished issues and pull requests in a GitHub project board column are really done.
+Check_done is a command line tool to check that GitHub issues and pull request in a project board with a status of "Done" are really done.
+
+For each issue or pull request in the "Done" column of the project board, it checks that:
+
+- It is closed.
+- It has an assignee.
+- It is assigned to a milestone.
+- All tasks are completed (list with check boxes in the description).
+
+For pull requests, it additionally checks if they reference an issue.
+
+This ensures a consistent quality on done issues and pull request, and helps to notice if they were accidentally deemed to be done too early.
+
+## Installation
+
+In order to gain access to your project board, issues, and pull request, check_done needs to autorize. The exact way to do that depends on whether your project belogs to a single user or an GitHub organization.
+
+For user projects, [create a personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with the permission: `read:project`.
+
+For organization projects, follow the instructions to [Installing a GitHub App from a third party](https://docs.github.com/en/apps/using-github-apps/installing-a-github-app-from-a-third-party) using the [Check_done app](https://github.com/apps/check-done-app).
+
+Remember the **app ID** and **private key** of the installed app.
 
 ## Configuration
 
-To use check_done for your project, you need to configure the fields in the `yaml` file found in the `configuration` folder.
+Check_done can be configured by having a `.check_done.yaml` in your current directory, or any of directory above.
 
-### General settings
+Alternatively, you can specify a specific location, for example:
 
-#### project_url (required)
+```bash
+check_done --config some/path/.check_done.yaml
+```
 
-The project URL as is when viewing your GitHub V2 project. E.g.: `"https://github.com/orgs/my_project_owner_name/projects/1/views/1"`
+### Project and authentication
 
-#### project_status_name_to_check (optional)
+A minimum configuration requires the URL of the project board and the authentication information from the installation.
+
+The project URL can be seen in the web browser's URL bar when visiting the project board, for example: `https://github.com/users/my-username/projects/1/views/1` (for a user) or `https://github.com/my-organization/projects/1/` (for an organization).
+
+An example for a user project could look like this:
+
+```yaml
+project_url: "https://github.com/users/my-username/projects/1/views/1"
+personal_access_token: "ghp_xxxxxxxxxxxxxxxxxxxxxx"
+```
+
+For an organization project:
+
+```yaml
+project_url: "https://github.com/orgs/my_username/projects/1/views/1"
+check_done_github_app_id: "1234567"
+check_done_github_app_private_key: "-----BEGIN RSA PRIVATE KEY-----
+something_something
+-----END RSA PRIVATE KEY-----
+"
+```
+
+In order to avoid having to commit token and keys into your repository, you can use environment variables for the values in the configuration YAML by starting them with a `$` symbol and wrapping it with curly braces. For example:
+
+```yaml
+personal_access_token: ${MY_PERSONAL_ACCESS_TOKEN_ENVVAR}
+```
+
+### Changing the board status column to check
 
 By default, check_done checks all issues and pull requests in the column rightmost / last column of the project board. If you left the default names when creating the GitHub project board, this will be the `"✅ Done"` column.
 
@@ -25,54 +76,3 @@ project_status_name_to_check = "Done"
 The name takes the first column that partially matches case sensitively. For example, `"Done"` will also match `"✅ Done"`, but not `"done"`.
 
 If no column matches, the resulting error messages will tell you the exact names of all available columns.
-
-### Authorization settings for a project belonging to a GitHub user
-
-#### personal_access_token
-
-A personal access token with the permission: `read:project`.
-
-Example:
-
-```yaml
-project_url: "https://github.com/orgs/my_username/projects/1/views/1"
-personal_access_token: "ghp_xxxxxxxxxxxxxxxxxxxxxx"
-# Since no `project_status_name_to_check` was specified, the checks will apply to the last project status/column.
-```
-
-### Authorization settings for a project belonging to a GitHub organization
-
-Follow the instructions to [Installing a GitHub App from a third party](https://docs.github.com/en/apps/using-github-apps/installing-a-github-app-from-a-third-party) using the [Siisurit's check_done app](https://github.com/apps/siisurit-s-check-done).
-
-You can also derive your own GitHub app from it with the following permissions:
-
-- `pull requests`
-- `projects`
-- `read:issues`
-
-Remember the App ID and the app private key. Then add the following settings to the configuration file:
-
-```yaml
-check_done_github_app_id = ...  # Typically a decimal number with at least 6 digits
-check_done_github_app_private_key = ""-----BEGIN RSA PRIVATE KEY..."
-```
-
-Example:
-
-```yaml
-project_url: "https://github.com/orgs/my_username/projects/1/views/1"
-check_done_github_app_id: "0123456"
-check_done_github_app_private_key: "-----BEGIN RSA PRIVATE KEY-----
-something_something
------END RSA PRIVATE KEY-----
-"
-project_status_name_to_check: "Done" # This will match the name of a project status/column containing "Done" like "✅ Done". The checks will then be applied to this project status/column.
-```
-
-### Using environment variables and examples
-
-You can use environment variables for the values in the configuration yaml by starting them with a `$` symbol and wrapping it with curly braces. For example:
-
-```yaml
-personal_access_token: ${MY_PERSONAL_ACCESS_TOKEN_ENVVAR}
-```
