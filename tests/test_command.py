@@ -34,7 +34,7 @@ def test_can_show_version():
     not HAS_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
     reason=REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
 )
-def test_can_set_root_dir_argument():
+def test_can_set_config_argument():
     with tempfile.TemporaryDirectory() as temp_folder, change_current_folder(temp_folder):
         current_folder = Path(os.getcwd())
         config_path = (current_folder / CONFIG_BASE_NAME).with_suffix(".yaml")
@@ -43,7 +43,7 @@ def test_can_set_root_dir_argument():
             "check_done_github_app_id: ${CHECK_DONE_GITHUB_APP_ID}\n"
             "check_done_github_app_private_key: ${CHECK_DONE_GITHUB_APP_PRIVATE_KEY}\n"
         )
-        exit_code = check_done_command(["--root-dir", config_path])
+        exit_code = check_done_command(["--config", str(config_path)])
         assert exit_code == 0
 
 
