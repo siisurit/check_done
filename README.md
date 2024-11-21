@@ -4,7 +4,6 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![License](https://img.shields.io/github/license/siisurit/check_done)](https://opensource.org/licenses/BSD-3-Clause)
 
-
 # check_done
 
 Check_done is a command line tool to check that GitHub issues and pull request in a project board with a status of "Done" are really done.
