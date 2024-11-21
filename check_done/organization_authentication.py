@@ -23,10 +23,10 @@ def resolve_organization_access_token(
     """
     Generates the necessary access token for an organization from the installed GitHub app instance in said organization
     """
-    jtw_token = generate_jwt_token(check_done_github_app_id, check_done_github_app_private_key)
+    jwt_token = generate_jwt_token(check_done_github_app_id, check_done_github_app_private_key)
     session = requests.Session()
     session.headers = {"Accept": "application/vnd.github+json"}
-    session.auth = HttpBearerAuth(jtw_token)
+    session.auth = HttpBearerAuth(jwt_token)
     try:
         check_done_github_app_installation_id = resolve_check_done_github_app_installation_id(
             session, organization_name
@@ -36,7 +36,7 @@ def resolve_organization_access_token(
         )
     except Exception as error:
         raise AuthenticationError(
-            f"Cannot resolve organization access token from JTW authentication process: {error}"
+            f"Cannot resolve organization access token from JWT authentication process: {error}"
         ) from error
     return result
 

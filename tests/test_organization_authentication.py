@@ -105,8 +105,8 @@ def test_fails_to_resolve_access_token_from_check_done_github_app_installation_i
 
 
 def _session():
-    jtw_token = generate_jwt_token(DEMO_CHECK_DONE_GITHUB_APP_ID, DEMO_CHECK_DONE_GITHUB_APP_PRIVATE_KEY)
+    jwt_token = generate_jwt_token(DEMO_CHECK_DONE_GITHUB_APP_ID, DEMO_CHECK_DONE_GITHUB_APP_PRIVATE_KEY)
     session = requests.Session()
     session.headers = {"Accept": "application/vnd.github+json"}
-    session.auth = HttpBearerAuth(jtw_token)
+    session.auth = HttpBearerAuth(jwt_token)
     return session
