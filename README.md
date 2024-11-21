@@ -1,3 +1,10 @@
+[![PyPI](https://img.shields.io/pypi/v/check_done)](https://pypi.org/project/pygount/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/check_done.svg)](https://www.python.org/downloads/)
+[![Build Status](https://github.com/siisurit/check_done/actions/workflows/build.yml/badge.svg)](https://github.com/roskakori/pygount/actions/workflows/build.yml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![License](https://img.shields.io/github/license/siisurit/check_done)](https://opensource.org/licenses/BSD-3-Clause)
+
+
 # check_done
 
 Check_done is a command line tool to check that GitHub issues and pull request in a project board with a status of "Done" are really done.
