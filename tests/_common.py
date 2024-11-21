@@ -1,6 +1,7 @@
 # Copyright (C) 2024 by Siisurit e.U., Austria.
 # All rights reserved. Distributed under the MIT License.
 import os
+from contextlib import contextmanager
 
 from check_done.config import (
     github_project_owner_name_and_project_number_and_is_project_owner_of_type_organization_from_url_if_matches,
@@ -33,8 +34,12 @@ DEMO_CHECK_DONE_GITHUB_PROJECT_URL = os.environ.get(_ENVVAR_DEMO_CHECK_DONE_GITH
     DEMO_CHECK_DONE_PROJECT_OWNER_NAME,
     DEMO_CHECK_DONE_PROJECT_NUMBER,
     DEMO_CHECK_DONE_IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION,
-) = github_project_owner_name_and_project_number_and_is_project_owner_of_type_organization_from_url_if_matches(
-    DEMO_CHECK_DONE_GITHUB_PROJECT_URL
+) = (
+    github_project_owner_name_and_project_number_and_is_project_owner_of_type_organization_from_url_if_matches(
+        DEMO_CHECK_DONE_GITHUB_PROJECT_URL
+    )
+    if DEMO_CHECK_DONE_GITHUB_PROJECT_URL
+    else (None, None, None)
 )
 
 HAS_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED = (
@@ -44,8 +49,8 @@ HAS_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED = (
     and DEMO_CHECK_DONE_IS_PROJECT_OWNER_OF_TYPE_ORGANIZATION
 )
 REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED = (
-    "To enable, setup the configuration file for an organization as described in the readme, "
-    "and set the following environment variables:"
+    f"To enable, setup the configuration file for an organization as described in the readme, "
+    f"and set the following environment variables:"
     f"{_ENVVAR_DEMO_CHECK_DONE_GITHUB_PROJECT_URL}"
     f"{_ENVVAR_DEMO_CHECK_DONE_GITHUB_APP_ID}"
     f"{_ENVVAR_DEMO_CHECK_DONE_GITHUB_APP_PRIVATE_KEY}"
@@ -90,3 +95,13 @@ def new_fake_project_item_info(
         repository=repository,
         title=title,
     )
+
+
+@contextmanager
+def change_current_folder(path):
+    old_folder = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(old_folder)

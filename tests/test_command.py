@@ -4,16 +4,17 @@ import logging
 import os
 import re
 import subprocess
+import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from check_done.command import check_done_command
-from check_done.config import resolve_root_repository_path
+from check_done.command import CONFIG_BASE_NAME, check_done_command
 from tests._common import (
     HAS_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
     REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
+    change_current_folder,
 )
 
 
@@ -33,10 +34,17 @@ def test_can_show_version():
     not HAS_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
     reason=REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
 )
-def test_can_set_root_dir_argument():
-    root_repository_path = str(resolve_root_repository_path())
-    exit_code = check_done_command([f"--root-dir={root_repository_path}"])
-    assert exit_code == 0
+def test_can_set_config_argument():
+    with tempfile.TemporaryDirectory() as temp_folder, change_current_folder(temp_folder):
+        current_folder = Path(os.getcwd())
+        config_path = (current_folder / CONFIG_BASE_NAME).with_suffix(".yaml")
+        config_path.write_text(
+            "project_url: ${CHECK_DONE_GITHUB_PROJECT_URL}\n"
+            "check_done_github_app_id: ${CHECK_DONE_GITHUB_APP_ID}\n"
+            "check_done_github_app_private_key: ${CHECK_DONE_GITHUB_APP_PRIVATE_KEY}\n"
+        )
+        exit_code = check_done_command(["--config", str(config_path)])
+        assert exit_code == 0
 
 
 @pytest.mark.skipif(
@@ -123,14 +131,14 @@ def test_main_script():
     assert "Checking project items" in result.stderr
 
 
-def test_keyboard_interrupt_handling():
-    with patch("check_done.command.Command.execute", side_effect=KeyboardInterrupt):
+def test_can_handle_keyboard_interrupt():
+    with patch("check_done.command.execute", side_effect=KeyboardInterrupt):
         exit_code = check_done_command([])
         assert exit_code == 1
 
 
-def test_general_exception_handling():
-    with patch("check_done.command.Command.execute", side_effect=Exception("Fake exception")):
+def test_can_handle_exception_handling():
+    with patch("check_done.command.execute", side_effect=Exception("Fake exception")):
         exit_code = check_done_command([])
         assert exit_code == 1
 

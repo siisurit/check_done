@@ -9,13 +9,12 @@ from typing import Any
 
 import yaml
 from dotenv import load_dotenv
-from git import Repo
 from pydantic import Field, field_validator, model_validator
 from pydantic.dataclasses import dataclass
 
 load_dotenv()
 
-CONFIG_FILE_NAME = ".check_done.yaml"
+CONFIG_BASE_NAME = ".check_done"
 _GITHUB_ORGANIZATION_NAME_AND_PROJECT_NUMBER_URL_REGEX = re.compile(
     r"https://github\.com/orgs/(?P<organization_name>[a-zA-Z0-9\-]+)/projects/(?P<project_number>[0-9]+).*"
 )
@@ -133,14 +132,22 @@ def map_from_yaml_file_path(configuration_path: Path) -> dict:
     return result
 
 
-def resolve_root_repository_path(path: Path | str = ".", search_parent_directories=True) -> Path:
-    root_repository = Repo(path, search_parent_directories=search_parent_directories)
-    result = Path(root_repository.git.rev_parse("--show-toplevel"))
-    return result
-
-
-def resolve_configuration_yaml_file_path_from_root_path(root_path: Path) -> Path:
-    result = Path(root_path / CONFIG_FILE_NAME)
-    if not Path.is_file(result):
-        raise FileNotFoundError(f"Configuration file missing in the specified root path: {root_path}") from None
+def default_config_path() -> Path:
+    initial_config_folder = Path().absolute()
+    config_folder = initial_config_folder
+    previous_config_folder = None
+    result = None
+    while result is None and config_folder != previous_config_folder:
+        # TODO#32 Check yaml and yml.
+        config_path_to_check = (config_folder / CONFIG_BASE_NAME).with_suffix(".yaml")
+        if config_path_to_check.is_file():
+            result = config_path_to_check
+        else:
+            previous_config_folder = config_folder
+            config_folder = config_folder.parent
+    if result is None:
+        raise FileNotFoundError(
+            f"Cannot find configuration file by looking for {CONFIG_BASE_NAME}.yaml "
+            f"and traversing upwards starting in {initial_config_folder}"
+        )
     return result
