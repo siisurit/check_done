@@ -79,6 +79,10 @@ def test_can_resolve_check_done_github_app_installation_id():
     assert isinstance(fake_installation_id, int)
 
 
+@pytest.mark.skipif(
+    not HAS_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
+    reason=REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
+)
 def test_fails_to_resolve_check_done_github_app_installation_id():
     session = _session()
     with pytest.raises(AuthenticationError, match="Could not retrieve installation ID: status=404 "):
@@ -105,6 +109,8 @@ def test_fails_to_resolve_access_token_from_check_done_github_app_installation_i
 
 
 def _session():
+    assert DEMO_CHECK_DONE_GITHUB_APP_ID is not None
+    assert DEMO_CHECK_DONE_GITHUB_APP_PRIVATE_KEY is not None
     jwt_token = generate_jwt_token(DEMO_CHECK_DONE_GITHUB_APP_ID, DEMO_CHECK_DONE_GITHUB_APP_PRIVATE_KEY)
     session = requests.Session()
     session.headers = {"Accept": "application/vnd.github+json"}
