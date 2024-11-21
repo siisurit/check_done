@@ -38,7 +38,9 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.10, <3.13"  # NOTE We cannot use <4 because of coveralls.
+# TODO#30: Move python target to <3.14 once coveralls supports it.
+#  See https://github.com/TheKevJames/coveralls-python/pull/542
+python = ">=3.10, <3.13"
 pygments = "^2"
 chardet = "^5"
 rich = ">=9, <14"
@@ -49,6 +51,7 @@ pytest-mock = "^3.14.0"
 pydantic = "^2.9.2"
 pyjwt = "^2.9.0"
 requests-mock = "^1.12.1"
+pytest-order = "^1.3.0"
 
 [tool.poetry.dev-dependencies]
 coveralls = "^4"
@@ -80,7 +83,7 @@ exclude = [
     "htmlcov",
 ]
 line-length = 120
-target-version = "py310"
+target-version = "py312"
 
 [tool.ruff.lint]
 ignore = [
