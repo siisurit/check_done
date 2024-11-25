@@ -1,6 +1,7 @@
 [![PyPI](https://img.shields.io/pypi/v/check_done)](https://pypi.org/project/pygount/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/check_done.svg)](https://www.python.org/downloads/)
 [![Build Status](https://github.com/siisurit/check_done/actions/workflows/build.yml/badge.svg)](https://github.com/roskakori/pygount/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/siisurit/check_done/graph/badge.svg?token=UIJZUCUJII)](https://codecov.io/gh/siisurit/check_done)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![License](https://img.shields.io/github/license/siisurit/check_done)](https://opensource.org/licenses/BSD-3-Clause)
 
