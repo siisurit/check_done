@@ -46,7 +46,11 @@ jobs:
           CHECK_DONE_PERSONAL_ACCESS_TOKEN: ${{ secrets.CHECK_DONE_PERSONAL_ACCESS_TOKEN }}
           CHECK_DONE_USER_GITHUB_PROJECT_URL: ${{ secrets.CHECK_DONE_USER_GITHUB_PROJECT_URL }}
         run: |
-          poetry run pytest --cov=check_done --cov-branch
+          poetry run pytest --cov=check_done --cov-branch --cov-report=xml
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   check-style:
     runs-on: ubuntu-latest
