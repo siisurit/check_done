@@ -7,22 +7,22 @@
 
 # check_done
 
-Check_done is a command line tool to check that GitHub issues and pull request in a project board with a status of "Done" are really done.
+Check_done is a command line tool to check that GitHub issues and pull requests in a project board with a status of "Done" are really done.
 
 For each issue or pull request in the "Done" column of the project board, it checks that:
 
 - It is closed.
 - It has an assignee.
 - It is assigned to a milestone.
-- All tasks are completed (list with check boxes in the description).
+- All tasks are completed (list with checkboxes in the description).
 
 For pull requests, it additionally checks if they reference an issue.
 
-This ensures a consistent quality on done issues and pull request, and helps to notice if they were accidentally deemed to be done too early.
+This ensures a consistent quality on done issues and pull requests, and helps to notice if they were accidentally deemed to be done too early.
 
 ## Installation
 
-In order to gain access to your project board, issues, and pull request, check_done needs to autorize. The exact way to do that depends on whether your project belogs to a single user or an GitHub organization.
+In order to gain access to your project board, issues, and pull requests, check_done needs to be authorized. The exact way to do that depends on whether your project belongs to a single user or a GitHub organization.
 
 For user projects, [create a personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with the permission: `read:project`.
 
@@ -32,7 +32,7 @@ Remember the **app ID** and **private key** of the installed app.
 
 ## Configuration
 
-Check_done can be configured by having a `.check_done.yaml` in your current directory, or any of directory above.
+Check_done can be configured by having a `.check_done.yaml` in your current directory, or any of the directories above.
 
 Alternatively, you can specify a specific location, for example:
 
@@ -46,7 +46,7 @@ A minimum configuration requires the URL of the project board and the authentica
 
 The project URL can be seen in the web browser's URL bar when visiting the project board, for example: `https://github.com/users/my-username/projects/1/views/1` (for a user) or `https://github.com/my-organization/projects/1/` (for an organization).
 
-An example for a user project could look like this:
+An example of a user project could look like this:
 
 ```yaml
 project_url: "https://github.com/users/my-username/projects/1/views/1"
@@ -64,7 +64,7 @@ something_something
 "
 ```
 
-In order to avoid having to commit token and keys into your repository, you can use environment variables for the values in the configuration YAML by starting them with a `$` symbol and wrapping it with curly braces. For example:
+In order to avoid having to commit tokens and keys into your repository, you can use environment variables for the values in the configuration YAML by starting them with a `$` symbol and wrapping them with curly braces. For example:
 
 ```yaml
 personal_access_token: ${MY_PERSONAL_ACCESS_TOKEN_ENVVAR}
@@ -72,7 +72,7 @@ personal_access_token: ${MY_PERSONAL_ACCESS_TOKEN_ENVVAR}
 
 ### Changing the board status column to check
 
-By default, check_done checks all issues and pull requests in the column rightmost / last column of the project board. If you left the default names when creating the GitHub project board, this will be the `"✅ Done"` column.
+By default, check_done checks all issues and pull requests in the column rightmost/last column of the project board. If you left the default names when creating the GitHub project board, this would be the `"✅ Done"` column.
 
 If you want to check a different column, you can specify its name with this option. For example:
 
@@ -80,6 +80,6 @@ If you want to check a different column, you can specify its name with this opti
 project_status_name_to_check = "Done"
 ```
 
-The name takes the first column that partially matches case sensitively. For example, `"Done"` will also match `"✅ Done"`, but not `"done"`.
+The name takes the first column that partially matches the case sensitivity. For example, `"Done"` will also match `"✅ Done"`, but not `"done"`.
 
 If no column matches, the resulting error messages will tell you the exact names of all available columns.
