@@ -17,6 +17,8 @@ from tests._common import (
     change_current_folder,
 )
 
+_PATH_TO_TEST_CONFIG = Path(__file__).parent / "data" / ".check_done.yaml"
+
 
 def test_can_show_help():
     with pytest.raises(SystemExit) as error_info:
@@ -52,7 +54,7 @@ def test_can_set_config_argument():
     reason=REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
 )
 def test_can_execute_check_done_command_and_get_warnings(caplog):
-    exit_code = check_done_command([])
+    exit_code = check_done_command(["--config", str(_PATH_TO_TEST_CONFIG)])
     assert exit_code == 0
     check_done_warning_messages = len(caplog.messages)
     assert check_done_warning_messages >= 1
@@ -63,7 +65,7 @@ def test_can_execute_check_done_command_and_get_warnings(caplog):
     reason=REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
 )
 def test_can_check_done_demo_project(caplog):
-    exit_code = check_done_command([])
+    exit_code = check_done_command(["--config", str(_PATH_TO_TEST_CONFIG)])
     assert exit_code == 0
 
     check_done_warning_messages = len(caplog.messages)
@@ -130,7 +132,7 @@ def test_can_check_done_demo_project(caplog):
 )
 def test_main_script():
     path = Path(__file__).resolve().parent.parent / "check_done" / "command.py"
-    command = f"poetry run python {path!s}"
+    command = f"poetry run python {path!s} --config {_PATH_TO_TEST_CONFIG!s}"
     result = subprocess.run(command, capture_output=True, text=True, shell=True, executable="/bin/bash", check=False)
     assert "Checking project items" in result.stderr
 
@@ -157,7 +159,7 @@ def test_can_log_info_message_if_selected_project_status_is_empty(caplog):
         original_envar_value = os.environ[envvar_name]
         empty_project_status_name_in_check_done_demo_project = "In progress"
         os.environ[envvar_name] = empty_project_status_name_in_check_done_demo_project
-        check_done_command([])
+        check_done_command(["--config", str(_PATH_TO_TEST_CONFIG)])
         os.environ[envvar_name] = original_envar_value
         assert "Nothing to check. Project has no items in the selected project status." in caplog.messages[1]
 
@@ -172,6 +174,6 @@ def test_can_log_info_message_if_no_warnings_were_found_for_checked_project_item
         original_envar_value = os.environ[envvar_name]
         project_status_name_in_check_done_demo_project_with_only_correct_issues = "Archived"
         os.environ[envvar_name] = project_status_name_in_check_done_demo_project_with_only_correct_issues
-        check_done_command([])
+        check_done_command(["--config", str(_PATH_TO_TEST_CONFIG)])
         os.environ[envvar_name] = original_envar_value
         assert "All project items are correct" in caplog.messages[1]
