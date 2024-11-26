@@ -7,22 +7,21 @@
 
 # check_done
 
-Check_done is a command line tool to check that GitHub issues and pull requests in a project board with a status of "Done" are really done.
+A command-line tool that validates the completeness of GitHub project items (issue or pull request) in your specified project status that represents done project items.
 
-For each issue or pull request in the "Done" column of the project board, it checks that:
+Current checks are:
 
-- It is closed.
-- It has an assignee.
-- It is assigned to a milestone.
-- All tasks are completed (list with checkboxes in the description).
+- Project item is closed.
+- Project item has an assignee.
+- Project item has a set milestone.
+- Project item has all tasks completed (list with checkboxes in the description).
+- Pull request has a closing issue reference.
 
-For pull requests, it additionally checks if they reference an issue.
-
-This ensures a consistent quality on done issues and pull requests, and helps to notice if they were accidentally deemed to be done too early.
+This ensures a consistent quality on done project items, and helps to notice if they were accidentally deemed to be done too early.
 
 ## Installation
 
-In order to gain access to your project board, issues, and pull requests, check_done needs to be authorized. The exact way to do that depends on whether your project belongs to a single user or a GitHub organization.
+In order to gain access to your project board, issues, and pull requests, check_done needs to be authorized. The exact way to do that depends on whether your project belongs to a GitHub user or organization.
 
 For user projects, [create a personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with the permission: `read:project`.
 
@@ -70,16 +69,16 @@ In order to avoid having to commit tokens and keys into your repository, you can
 personal_access_token: ${MY_PERSONAL_ACCESS_TOKEN_ENVVAR}
 ```
 
-### Changing the board status column to check
+### Changing the project status name to check
 
-By default, check_done checks all issues and pull requests in the column rightmost/last column of the project board. If you left the default names when creating the GitHub project board, this would be the `"✅ Done"` column.
+By default, check_done checks all issues and pull requests in the last selectable project status. If you left the default names when creating the GitHub project board, this would be the `"✅ Done"` project status.
 
-If you want to check a different column, you can specify its name with this option. For example:
+If you want to check a different project status, you can specify a partial or exact matching name with this option. For example:
 
 ```yaml
 project_status_name_to_check = "Done"
 ```
 
-The name takes the first column that partially matches the case sensitivity. For example, `"Done"` will also match `"✅ Done"`, but not `"done"`.
+The name takes the first project status that partially matches the case sensitivity. For example, `"Done"` will also match `"✅ Done"`, but not `"done"`.
 
-If no column matches, the resulting error messages will tell you the exact names of all available columns.
+If no project status matches, the resulting error messages will show you the exact name of the available project status selections.

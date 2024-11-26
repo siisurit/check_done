@@ -55,7 +55,7 @@ def done_project_items_info(configuration_info: ConfigurationInfo) -> list[Proje
         )
 
     project_status_name_to_check = configuration_info.project_status_name_to_check
-    project_status_option_id = matching_project_state_option_id(
+    project_status_option_id = matching_project_status_option_id(
         project_single_select_field_infos,
         project_status_name_to_check,
         project_number,
@@ -74,7 +74,7 @@ def matching_project_id(project_infos: list[ProjectV2Node], project_number: int,
         ) from None
 
 
-def matching_project_state_option_id(
+def matching_project_status_option_id(
     project_single_select_field_infos: list[ProjectV2SingleSelectFieldNode],
     project_status_name_to_check: str | None,
     project_number: int,
@@ -117,14 +117,14 @@ def matching_project_state_option_id(
 
 def filtered_project_item_infos_by_done_status(
     project_item_infos: list[ProjectV2ItemNode],
-    project_state_option_id: str,
+    project_status_option_id: str,
 ) -> list[ProjectItemInfo]:
     result = []
     for project_item_info in project_item_infos:
-        has_project_state_option = (
+        has_project_status_option = (
             project_item_info.field_value_by_name is not None
-            and project_item_info.field_value_by_name.option_id == project_state_option_id
+            and project_item_info.field_value_by_name.option_id == project_status_option_id
         )
-        if has_project_state_option:
+        if has_project_status_option:
             result.append(project_item_info.content)
     return result

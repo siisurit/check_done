@@ -73,9 +73,13 @@ def test_can_check_done_demo_project(caplog):
     warning_about_missing_assignee = caplog.messages[0]
     assert re.search(expected_warning_about_missing_assignee, warning_about_missing_assignee)
 
-    expected_warning_about_open_issue_with_dene_state = r"(?=.*be closed)(?=.*#4 Warning: Open issue with Done state)"
-    warning_about_open_issue_with_dene_state = caplog.messages[1]
-    assert re.search(expected_warning_about_open_issue_with_dene_state, warning_about_open_issue_with_dene_state)
+    expected_warning_about_open_issue_with_done_project_status = (
+        r"(?=.*be closed)(?=.*#4 Warning: Open issue with Done project status)"
+    )
+    warning_about_open_issue_with_done_project_status = caplog.messages[1]
+    assert re.search(
+        expected_warning_about_open_issue_with_done_project_status, warning_about_open_issue_with_done_project_status
+    )
 
     expected_warning_about_missing_milestone = (
         r"(?=.*have a milestone)(?=.*#11 Warning: Project item without milestone)"
@@ -98,18 +102,18 @@ def test_can_check_done_demo_project(caplog):
         warning_about_pull_request_with_missing_closing_issue_reference,
     )
 
-    expected_warning_about_open_pull_request_with_done_state = (
-        r"(?=.*be closed)(?=.*#7 Warning: Open pull request with Done state)"
+    expected_warning_about_open_pull_request_with_done_project_status = (
+        r"(?=.*be closed)(?=.*#7 Warning: Open pull request with Done project status)"
     )
-    warning_about_open_pull_request_with_done_state = caplog.messages[5]
+    warning_about_open_pull_request_with_done_project_status = caplog.messages[5]
     assert re.search(
-        expected_warning_about_open_pull_request_with_done_state,
-        warning_about_open_pull_request_with_done_state,
+        expected_warning_about_open_pull_request_with_done_project_status,
+        warning_about_open_pull_request_with_done_project_status,
     )
 
     ok_project_item_titles = [
         "#2 Ok: Closed issue without PR",
-        "#10 Ok: Properly closed issue with Done state",
+        "#10 Ok: Properly closed issue with Done status",
         "#12 Ok: Project item with finished goals",
         "#5 Ok: Pull Request has linked issue",
     ]
