@@ -18,8 +18,7 @@ from check_done.warning_checks import warnings_for_done_project_items
 logger = logging.getLogger(__name__)
 
 _HELP_DESCRIPTION = (
-    "A command-line tool that validates the completeness of GitHub project items "
-    "(issue or pull request) in your specified project status that represents done project items."
+    'Check that GitHub issues and pull requests in a project board with a status of "Done" are really done.'
 )
 
 

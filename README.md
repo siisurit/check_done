@@ -7,17 +7,18 @@
 
 # check_done
 
-A command-line tool that validates the completeness of GitHub project items (issue or pull request) in your specified project status that represents done project items.
+Check_done is a command line tool to check that GitHub issues and pull requests in a project board with a status of "Done" are really done.
 
-Current checks are:
+It checks that:
 
-- Project item is closed.
-- Project item has an assignee.
-- Project item has a set milestone.
-- Project item has all tasks completed (list with checkboxes in the description).
-- Pull request has a closing issue reference.
+- It is closed.
+- It has an assignee.
+- It is assigned to a milestone.
+- All tasks are completed (checkboxes in the description).
 
-This ensures a consistent quality on done project items, and helps to notice if they were accidentally deemed to be done too early.
+Additionally, for pull requests, it checks if they reference an issue.
+
+This ensures a consistent quality on done issues and pull requests, and helps to notice if they were accidentally deemed to be done too early.
 
 ## Installation
 
@@ -25,9 +26,7 @@ In order to gain access to your project board, issues, and pull requests, check_
 
 For user projects, [create a personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with the permission: `read:project`.
 
-For organization projects, follow the instructions to [Installing a GitHub App from a third party](https://docs.github.com/en/apps/using-github-apps/installing-a-github-app-from-a-third-party) using the [Check_done app](https://github.com/apps/check-done-app).
-
-Remember the **app ID** and **private key** of the installed app.
+For organization projects, follow the instructions to [Installing a GitHub App from a third party](https://docs.github.com/en/apps/using-github-apps/installing-a-github-app-from-a-third-party) using the [Check_done app](https://github.com/apps/check-done-app). Remember the **app ID** and **private key** of the installed app in order to use for configuration.
 
 ## Configuration
 
@@ -69,7 +68,7 @@ In order to avoid having to commit tokens and keys into your repository, you can
 personal_access_token: ${MY_PERSONAL_ACCESS_TOKEN_ENVVAR}
 ```
 
-### Changing the project status name to check
+### Changing the project status to check
 
 By default, check_done checks all issues and pull requests in the last selectable project status. If you left the default names when creating the GitHub project board, this would be the `"✅ Done"` project status.
 
