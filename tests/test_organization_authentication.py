@@ -10,7 +10,7 @@ from check_done.graphql import HttpBearerAuth
 from check_done.organization_authentication import (
     AuthenticationError,
     generate_jwt_token,
-    resolve_check_done_github_app_installation_id,
+    resolve_github_app_installation_id,
     resolve_organization_access_token,
 )
 from tests._common import (
@@ -73,9 +73,9 @@ def test_can_generate_jwt_token():
     not HAS_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
     reason=REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
 )
-def test_can_resolve_check_done_github_app_installation_id():
+def test_can_resolve_github_app_installation_id():
     session = _session()
-    fake_installation_id = resolve_check_done_github_app_installation_id(session, DEMO_CHECK_DONE_PROJECT_OWNER_NAME)
+    fake_installation_id = resolve_github_app_installation_id(session, DEMO_CHECK_DONE_PROJECT_OWNER_NAME)
     assert isinstance(fake_installation_id, int)
 
 
@@ -83,20 +83,20 @@ def test_can_resolve_check_done_github_app_installation_id():
     not HAS_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
     reason=REASON_SHOULD_HAVE_DEMO_CHECK_DONE_ORGANIZATION_PROJECT_CONFIGURED,
 )
-def test_fails_to_resolve_check_done_github_app_installation_id():
+def test_fails_to_resolve_github_app_installation_id():
     session = _session()
     with pytest.raises(AuthenticationError, match="Could not retrieve installation ID: status=404 "):
-        resolve_check_done_github_app_installation_id(session, _DUMMY_ORGANIZATION_NAME)
+        resolve_github_app_installation_id(session, _DUMMY_ORGANIZATION_NAME)
 
 
-def test_fails_to_resolve_check_done_github_app_installation_id_from_bad_request():
+def test_fails_to_resolve_github_app_installation_id_from_bad_request():
     with requests_mock.Mocker() as mock:
         mock.get(f"https://api.github.com/orgs/{_DUMMY_ORGANIZATION_NAME}/installation", status_code=400)
         with pytest.raises(AuthenticationError, match="Could not retrieve installation ID: status=400 "):
             resolve_organization_access_token(_DUMMY_ORGANIZATION_NAME, _DUMMY_GITHUB_APP_ID, _FAKE_PEM_PRIVATE_KEY)
 
 
-def test_fails_to_resolve_access_token_from_check_done_github_app_installation_id():
+def test_fails_to_resolve_access_token_from_github_app_installation_id():
     with requests_mock.Mocker() as mock:
         mock.get(
             f"https://api.github.com/orgs/{_DUMMY_ORGANIZATION_NAME}/installation",

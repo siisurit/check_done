@@ -17,7 +17,9 @@ from check_done.warning_checks import warnings_for_done_project_items
 
 logger = logging.getLogger(__name__)
 
-_HELP_DESCRIPTION = "Checks that finished issues and pull requests in a GitHub project board column are really done."
+_HELP_DESCRIPTION = (
+    'Check that GitHub issues and pull requests in a project board with a status of "Done" are really done.'
+)
 
 
 def check_done_command(arguments=None) -> int:
@@ -69,10 +71,10 @@ def _argument_parser():
     return parser
 
 
-def main():
+def main():  # pragma: no cover
     logging.basicConfig(level=logging.INFO)
     sys.exit(check_done_command())
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

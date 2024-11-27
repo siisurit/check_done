@@ -9,7 +9,7 @@ from check_done.done_project_items_info import (
     done_project_items_info,
     filtered_project_item_infos_by_done_status,
     matching_project_id,
-    matching_project_state_option_id,
+    matching_project_status_option_id,
 )
 from check_done.info import (
     ProjectV2Node,
@@ -48,8 +48,8 @@ _REASON_SHOULD_HAVE_USER_PROJECT_CONFIGURED = (
 def test_can_resolve_done_project_items_info():
     fake_configuration_info = ConfigurationInfo(
         project_url=DEMO_CHECK_DONE_GITHUB_PROJECT_URL,
-        check_done_github_app_id=DEMO_CHECK_DONE_GITHUB_APP_ID,
-        check_done_github_app_private_key=DEMO_CHECK_DONE_GITHUB_APP_PRIVATE_KEY,
+        github_app_id=DEMO_CHECK_DONE_GITHUB_APP_ID,
+        github_app_private_key=DEMO_CHECK_DONE_GITHUB_APP_PRIVATE_KEY,
     )
     assert len(done_project_items_info(fake_configuration_info)) >= 1
 
@@ -91,10 +91,10 @@ def test_fails_to_find_matching_project_id():
         matching_project_id(fake_project_id_node_infos, project_number, "dummy_project_owner_name")
 
 
-def test_can_find_matching_project_state_option_id():
+def test_can_find_matching_project_status_option_id():
     expected_to_math_project_status_option_id = "2b"
-    fake_matching_project_state_option_name = "Finished"
-    fake_last_project_state_option_id_node_infos = [
+    fake_matching_project_status_option_name = "Finished"
+    fake_last_project_status_option_id_node_infos = [
         ProjectV2SingleSelectFieldNode(
             id="a1",
             name="Status",
@@ -102,14 +102,14 @@ def test_can_find_matching_project_state_option_id():
             options=[
                 ProjectV2Options(id="1a", name="In Progress"),
                 ProjectV2Options(
-                    id=expected_to_math_project_status_option_id, name=fake_matching_project_state_option_name
+                    id=expected_to_math_project_status_option_id, name=fake_matching_project_status_option_name
                 ),
             ],
         )
     ]
-    matched_project_status_option_id = matching_project_state_option_id(
-        fake_last_project_state_option_id_node_infos,
-        fake_matching_project_state_option_name,
+    matched_project_status_option_id = matching_project_status_option_id(
+        fake_last_project_status_option_id_node_infos,
+        fake_matching_project_status_option_name,
         1,
         "dummy_project_owner_name",
     )
@@ -120,9 +120,9 @@ def test_can_find_matching_project_state_option_id():
     not _HAS_PROJECT_STATUS_NAME_TO_CHECK,
     reason=_REASON_SHOULD_HAVE_SET_ENV_PROJECT_STATUS_NAME_TO_CHECK,
 )
-def test_fails_to_find_matching_project_state_option_id():
-    wrongly_assumed_matching_project_state_option_name = "Backlog"
-    fake_last_project_state_option_id_node_infos = [
+def test_fails_to_find_matching_project_status_option_id():
+    wrongly_assumed_matching_project_status_option_name = "Backlog"
+    fake_last_project_status_option_id_node_infos = [
         ProjectV2SingleSelectFieldNode(
             id="a1",
             name="Status",
@@ -135,45 +135,45 @@ def test_fails_to_find_matching_project_state_option_id():
     ]
     with pytest.raises(
         ValueError,
-        match=f"Cannot find the project status matching name '{wrongly_assumed_matching_project_state_option_name}' ",
+        match=f"Cannot find the project status matching name '{wrongly_assumed_matching_project_status_option_name}' ",
     ):
-        matching_project_state_option_id(
-            fake_last_project_state_option_id_node_infos,
-            wrongly_assumed_matching_project_state_option_name,
+        matching_project_status_option_id(
+            fake_last_project_status_option_id_node_infos,
+            wrongly_assumed_matching_project_status_option_name,
             1,
             "dummy_project_owner_name",
         )
 
 
-def test_can_find_matching_last_project_state_option_id():
-    expected_to_match_project_state_option_id = "2b"
-    fake_last_project_state_option_id_node_infos = [
+def test_can_find_matching_last_project_status_option_id():
+    expected_to_match_project_status_option_id = "2b"
+    fake_last_project_status_option_id_node_infos = [
         ProjectV2SingleSelectFieldNode(
             id="a1",
             name="Status",
             __typename="ProjectV2SingleSelectField",
             options=[
                 ProjectV2Options(id="1a", name="In Progress"),
-                ProjectV2Options(id=expected_to_match_project_state_option_id, name="Finished"),
+                ProjectV2Options(id=expected_to_match_project_status_option_id, name="Finished"),
             ],
         )
     ]
-    matching_last_project_state_option_id = matching_project_state_option_id(
-        fake_last_project_state_option_id_node_infos,
+    matching_last_project_status_option_id = matching_project_status_option_id(
+        fake_last_project_status_option_id_node_infos,
         None,
         1,
         "dummy_project_owner_name",
     )
-    assert matching_last_project_state_option_id == expected_to_match_project_state_option_id
+    assert matching_last_project_status_option_id == expected_to_match_project_status_option_id
 
 
-def test_fails_to_find_matching_last_project_state_option_id():
-    fake_last_project_state_option_id_node_infos = [
+def test_fails_to_find_matching_last_project_status_option_id():
+    fake_last_project_status_option_id_node_infos = [
         ProjectV2SingleSelectFieldNode(id="a1", name="Milestone", __typename="ProjectV2SingleSelectField", options=[])
     ]
     with pytest.raises(ValueError, match="Cannot find a project status selection field "):
-        matching_project_state_option_id(
-            fake_last_project_state_option_id_node_infos,
+        matching_project_status_option_id(
+            fake_last_project_status_option_id_node_infos,
             None,
             1,
             "dummy_project_owner_name",

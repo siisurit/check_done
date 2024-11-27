@@ -40,7 +40,7 @@ Repository permissions:
 
 - Issues: read-only
 - Pull requests: read-only
-- Metadata: read-ony (mandatory and enabled automatically)
+- Metadata: read-only (mandatory and enabled automatically)
 
 Organization permissions:
 
@@ -56,13 +56,11 @@ Many coding guidelines are automatically enforced (and some even fixed automatic
 poetry run pre-commit run --all-files
 ```
 
-## Release cheatsheet
+## Release cheat-sheet
 
 This section only relevant for developers with access to the PyPI project.
 
 To add a new release, first update the `pyproject.toml`:
-
-.. code-block:: toml
 
 ```toml
 [tool.poetry]
