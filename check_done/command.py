@@ -71,7 +71,7 @@ def _argument_parser():
     return parser
 
 
-def main():
+def main():  # pragma: no cover
     logging.basicConfig(level=logging.INFO)
     sys.exit(check_done_command())
 
