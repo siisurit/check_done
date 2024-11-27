@@ -17,7 +17,7 @@ from tests._common import (
     change_current_folder,
 )
 
-_PATH_TO_TEST_CONFIG = Path(__file__).parent / "data" / ".check_done.yaml"
+_PATH_TO_TEST_CONFIG = Path(__file__).parent / "data" / "test_configuration.yaml"
 
 
 def test_can_show_help():
