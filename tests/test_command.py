@@ -42,8 +42,8 @@ def test_can_set_config_argument():
         config_path = (current_folder / CONFIG_BASE_NAME).with_suffix(".yaml")
         config_path.write_text(
             "project_url: ${CHECK_DONE_GITHUB_PROJECT_URL}\n"
-            "check_done_github_app_id: ${CHECK_DONE_GITHUB_APP_ID}\n"
-            "check_done_github_app_private_key: ${CHECK_DONE_GITHUB_APP_PRIVATE_KEY}\n"
+            "github_app_id: ${CHECK_DONE_GITHUB_APP_ID}\n"
+            "github_app_private_key: ${CHECK_DONE_GITHUB_APP_PRIVATE_KEY}\n"
         )
         exit_code = check_done_command(["--config", str(config_path)])
         assert exit_code == 0

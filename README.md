@@ -55,8 +55,8 @@ For an organization project:
 
 ```yaml
 project_url: "https://github.com/orgs/my_username/projects/1/views/1"
-check_done_github_app_id: "1234567"
-check_done_github_app_private_key: "-----BEGIN RSA PRIVATE KEY-----
+github_app_id: "1234567"
+github_app_private_key: "-----BEGIN RSA PRIVATE KEY-----
 something_something
 -----END RSA PRIVATE KEY-----
 "

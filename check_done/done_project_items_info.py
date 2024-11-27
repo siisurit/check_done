@@ -25,11 +25,9 @@ def done_project_items_info(configuration_info: ConfigurationInfo) -> list[Proje
 
     is_project_owner_of_type_organization = configuration_info.is_project_owner_of_type_organization
     if is_project_owner_of_type_organization:
-        check_done_github_app_id = configuration_info.check_done_github_app_id
-        check_done_github_app_private_key = configuration_info.check_done_github_app_private_key
-        access_token = resolve_organization_access_token(
-            project_owner_name, check_done_github_app_id, check_done_github_app_private_key
-        )
+        github_app_id = configuration_info.github_app_id
+        github_app_private_key = configuration_info.github_app_private_key
+        access_token = resolve_organization_access_token(project_owner_name, github_app_id, github_app_private_key)
     else:
         access_token = configuration_info.personal_access_token
 

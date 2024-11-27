@@ -36,8 +36,8 @@ class ConfigurationInfo:
     personal_access_token: str | None = None
 
     # Required for organization owned project
-    check_done_github_app_id: str | None = None
-    check_done_github_app_private_key: str | None = None
+    github_app_id: str | None = None
+    github_app_private_key: str | None = None
 
     # Optional
     project_status_name_to_check: str | None = None
@@ -51,8 +51,8 @@ class ConfigurationInfo:
         "project_url",
         "project_status_name_to_check",
         "personal_access_token",
-        "check_done_github_app_id",
-        "check_done_github_app_private_key",
+        "github_app_id",
+        "github_app_private_key",
         mode="before",
     )
     def value_from_env(cls, value: Any | None):
@@ -76,8 +76,8 @@ class ConfigurationInfo:
             self.personal_access_token is not None and not self.is_project_owner_of_type_organization
         )
         has_organizational_authentication = (
-            self.check_done_github_app_id is not None
-            and self.check_done_github_app_private_key is not None
+            self.github_app_id is not None
+            and self.github_app_private_key is not None
             and self.is_project_owner_of_type_organization
         )
         if not has_user_authentication ^ has_organizational_authentication:
@@ -138,7 +138,7 @@ def default_config_path() -> Path:
     previous_config_folder = None
     result = None
     while result is None and config_folder != previous_config_folder:
-        # TODO#32 Check yaml and yml.
+        # TODO#32 Check yaml and yml, if both exist yaml is picked over yml.
         config_path_to_check = (config_folder / CONFIG_BASE_NAME).with_suffix(".yaml")
         if config_path_to_check.is_file():
             result = config_path_to_check

@@ -48,8 +48,8 @@ _REASON_SHOULD_HAVE_USER_PROJECT_CONFIGURED = (
 def test_can_resolve_done_project_items_info():
     fake_configuration_info = ConfigurationInfo(
         project_url=DEMO_CHECK_DONE_GITHUB_PROJECT_URL,
-        check_done_github_app_id=DEMO_CHECK_DONE_GITHUB_APP_ID,
-        check_done_github_app_private_key=DEMO_CHECK_DONE_GITHUB_APP_PRIVATE_KEY,
+        github_app_id=DEMO_CHECK_DONE_GITHUB_APP_ID,
+        github_app_private_key=DEMO_CHECK_DONE_GITHUB_APP_PRIVATE_KEY,
     )
     assert len(done_project_items_info(fake_configuration_info)) >= 1
 

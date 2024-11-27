@@ -111,12 +111,12 @@ def test_can_validate_at_least_one_type_of_authentication_is_properly_configured
     fake_organization_project_url = "https://github.com/orgs/fake-organization/projects/1"
     fake_configuration_info_with_organization_project = ConfigurationInfo(
         project_url="https://github.com/orgs/fake-organization/projects/1",
-        check_done_github_app_id="fake_app_id",
-        check_done_github_app_private_key="fake_private_key",
+        github_app_id="fake_app_id",
+        github_app_private_key="fake_private_key",
     )
     assert fake_configuration_info_with_organization_project.project_url == fake_organization_project_url
-    assert fake_configuration_info_with_organization_project.check_done_github_app_id == "fake_app_id"
-    assert fake_configuration_info_with_organization_project.check_done_github_app_private_key == "fake_private_key"
+    assert fake_configuration_info_with_organization_project.github_app_id == "fake_app_id"
+    assert fake_configuration_info_with_organization_project.github_app_private_key == "fake_private_key"
 
 
 def test_fails_on_no_authentication_method_configured():
@@ -130,7 +130,7 @@ def test_fails_on_organization_authentication_method_missing_private_key():
     with pytest.raises(ValueError, match="A user or an organization authentication method must be configured."):
         ConfigurationInfo(
             project_url="https://github.com/orgs/fake-organization/projects/1",
-            check_done_github_app_id="fake_check_done_github_app_id",
+            github_app_id="fake_github_app_id",
         )
 
 
@@ -138,7 +138,7 @@ def test_fails_on_organization_authentication_method_missing_app_id():
     with pytest.raises(ValueError, match="A user or an organization authentication method must be configured."):
         ConfigurationInfo(
             project_url="https://github.com/orgs/fake-organization/projects/1",
-            check_done_github_app_private_key="fake_check_done_github_app_private_key",
+            github_app_private_key="fake_github_app_private_key",
         )
 
 
@@ -166,8 +166,8 @@ def test_can_resolve_project_details_from_user_project_url():
 def test_can_resolve_project_details_from_organization_project_url():
     configuration_info = ConfigurationInfo(
         project_url="https://github.com/orgs/fake-organization-name/projects/1/views/2",
-        check_done_github_app_id="fake_check_done_github_app_id",
-        check_done_github_app_private_key="fake_check_done_github_app_private_key",
+        github_app_id="fake_github_app_id",
+        github_app_private_key="fake_github_app_private_key",
     )
     assert configuration_info.is_project_owner_of_type_organization
     assert configuration_info.project_number == 1
