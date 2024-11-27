@@ -37,8 +37,6 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-# TODO#30: Move python target to <3.14 once coveralls supports it.
-#  See https://github.com/TheKevJames/coveralls-python/pull/542
 python = ">=3.10, <3.14"
 pygments = "^2"
 chardet = "^5"
