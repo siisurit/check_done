@@ -132,8 +132,8 @@ def test_can_check_done_demo_project(caplog):
 )
 def test_main_script():
     path = Path(__file__).resolve().parent.parent / "check_done" / "command.py"
-    command = f"poetry run python {path!s} --config {_PATH_TO_TEST_CONFIG!s}"
-    result = subprocess.run(command, capture_output=True, text=True, shell=True, executable="/bin/bash", check=False)
+    command = f"poetry run python {path.as_posix()!s} --config {_PATH_TO_TEST_CONFIG.as_posix()!s}"
+    result = subprocess.run(command, capture_output=True, text=True, shell=True, check=False)
     assert "Checking project items" in result.stderr
 
 
