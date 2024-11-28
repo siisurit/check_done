@@ -19,7 +19,7 @@ repository = "https://github.com/siisurit/check_done.git"
 documentation = "https://github.com/siisurit/check_done/blob/main/README.md"
 keywords = ["check", "closed", "done", "done done", "finished", "issue", "task", "validate"]
 classifiers = [
-        "Development Status :: 4 - Beta",
+     "Development Status :: 4 - Beta",
         "Environment :: Console",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
@@ -37,18 +37,14 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.10, <3.14"
-pygments = "^2"
-chardet = "^5"
-rich = ">=9, <14"
-gitpython = "^3"
+python = ">=3.11, <3.14"
+
 pyyaml = "^6.0.2"
 python-dotenv = "^1.0.1"
-pytest-mock = "^3.14.0"
 pydantic = "^2.10.2"
 pyjwt = "^2.9.0"
 requests-mock = "^1.12.1"
-pytest-order = "^1.3.0"
+requests = "^2.32.3"
 
 [tool.poetry.dev-dependencies]
 coverage = "^7"
@@ -64,6 +60,11 @@ check_done = "check_done.command:main"
 [tool.poetry.urls]
 "Changelog" = "https://github.com/siisurit/check_done/blob/main/CHANGELOG.md"
 "Issue Tracker" = "https://github.com/siisurit/check_done/issues"
+
+[tool.poetry.group.dev.dependencies]
+cryptography = "^44.0.0"
+requests-mock = "^1.12.1"
+python-dotenv = "^1.0.1"
 
 [tool.ruff]
 exclude = [
