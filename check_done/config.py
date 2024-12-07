@@ -138,13 +138,9 @@ def default_config_path() -> Path:
     previous_config_folder = None
     result = None
     while result is None and config_folder != previous_config_folder:
-        config_path_to_check_yaml = (config_folder / CONFIG_BASE_NAME).with_suffix(".yaml")
-        config_path_to_check_yml = (config_folder / CONFIG_BASE_NAME).with_suffix(".yml")
-        if config_path_to_check_yaml.is_file():
-            result = config_path_to_check_yaml
-        elif config_path_to_check_yml.is_file():
-            result = config_path_to_check_yml
-        else:
+        config_paths_to_check = [(config_folder / CONFIG_BASE_NAME).with_suffix(suffix) for suffix in [".yaml", ".yml"]]
+        result = next((path for path in config_paths_to_check if path.is_file()), None)
+        if result is None:
             previous_config_folder = config_folder
             config_folder = config_folder.parent
 
