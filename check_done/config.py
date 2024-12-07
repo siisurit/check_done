@@ -143,7 +143,6 @@ def default_config_path() -> Path:
         if result is None:
             previous_config_folder = config_folder
             config_folder = config_folder.parent
-
     if result is None:
         raise FileNotFoundError(
             f"Cannot find configuration file by looking for {CONFIG_BASE_NAME}.yaml "

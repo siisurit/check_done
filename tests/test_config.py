@@ -183,7 +183,7 @@ def test_can_resolve_config_default_path():
     assert actual_config_path == expected_config_path
 
 
-def test_can_resolve_config_default_path_yml():
+def test_can_resolve_default_config_path_with_yml_file_suffix():
     with tempfile.TemporaryDirectory() as temp_folder, change_current_folder(temp_folder):
         current_folder = Path(os.getcwd())
         expected_config_path = (current_folder / CONFIG_BASE_NAME).with_suffix(".yml")
@@ -192,15 +192,16 @@ def test_can_resolve_config_default_path_yml():
     assert actual_config_path == expected_config_path
 
 
-def test_can_resolve_config_default_path_yml_and_yaml():
+def test_can_resolve_default_config_path_when_both_yaml_and_yml_config_files_exist():
     with tempfile.TemporaryDirectory() as temp_folder, change_current_folder(temp_folder):
         current_folder = Path(os.getcwd())
-        expected_config_path_yaml = (current_folder / CONFIG_BASE_NAME).with_suffix(".yaml")
-        expected_config_path_yml = (current_folder / CONFIG_BASE_NAME).with_suffix(".yml")
-        expected_config_path_yml.write_text("")
-        expected_config_path_yaml.write_text("")
+        current_folder = Path(os.getcwd())
+        expected_config_path_with_prioritized_yaml_suffix = (current_folder / CONFIG_BASE_NAME).with_suffix(".yaml")
+        expected_config_path_with_prioritized_yaml_suffix.write_text("")
+        another_valid_config_path_with_yml_suffix = (current_folder / CONFIG_BASE_NAME).with_suffix(".yml")
+        another_valid_config_path_with_yml_suffix.write_text("")
         actual_config_path = default_config_path()
-    assert actual_config_path == expected_config_path_yaml
+    assert actual_config_path == expected_config_path_with_prioritized_yaml_suffix
 
 
 def test_fails_on_missing_default_config_path():
