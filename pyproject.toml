@@ -41,6 +41,7 @@ python = ">=3.11, <3.14"
 pyyaml = "^6.0.2"
 python-dotenv = "^1.0.1"
 pydantic = "^2.10.2"
+cryptography = "^44.0.0"
 pyjwt = "^2.9.0"
 requests = "^2.32.3"
 
