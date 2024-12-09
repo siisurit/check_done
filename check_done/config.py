@@ -138,11 +138,9 @@ def default_config_path() -> Path:
     previous_config_folder = None
     result = None
     while result is None and config_folder != previous_config_folder:
-        # TODO#32 Check yaml and yml, if both exist yaml is picked over yml.
-        config_path_to_check = (config_folder / CONFIG_BASE_NAME).with_suffix(".yaml")
-        if config_path_to_check.is_file():
-            result = config_path_to_check
-        else:
+        config_paths_to_check = [(config_folder / CONFIG_BASE_NAME).with_suffix(suffix) for suffix in [".yaml", ".yml"]]
+        result = next((path for path in config_paths_to_check if path.is_file()), None)
+        if result is None:
             previous_config_folder = config_folder
             config_folder = config_folder.parent
     if result is None:
