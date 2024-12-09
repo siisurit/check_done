@@ -53,7 +53,6 @@ check_done = "check_done.command:main"
 "Issue Tracker" = "https://github.com/siisurit/check_done/issues"
 
 [tool.poetry.group.dev.dependencies]
-cryptography = "^44.0.0"
 coverage = "^7"
 pytest = "^8"
 pytest-cov = "^6"
