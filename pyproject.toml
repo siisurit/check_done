@@ -38,12 +38,12 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.11, <4"
-pyyaml = "^6.0.2"
-python-dotenv = "^1.0.1"
-pydantic = "^2.10.3"
-cryptography = "^44.0.0"
-pyjwt = "^2.9.0"
-requests = "^2.32.3"
+pyyaml = "^6.0"
+python-dotenv = "^1.0"
+pydantic = "^2.10"
+cryptography = "^44.0"
+pyjwt = "^2.10"
+requests = "^2.32"
 
 [tool.poetry.scripts]
 check_done = "check_done.command:main"
@@ -57,9 +57,9 @@ coverage = "^7"
 pytest = "^8"
 pytest-cov = "^6"
 pre-commit = "^4"
-ruff = "^0.9"
+ruff = "^0.11"
 twine = "^5"
-requests-mock = "^1.12.1"
+requests-mock = "^1.12"
 
 [tool.ruff]
 exclude = [
