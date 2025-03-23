@@ -1,4 +1,4 @@
-# Copyright (C) 2024 by Siisurit e.U., Austria.
+# Copyright (C) 2024-2025 by Siisurit e.U., Austria.
 # All rights reserved. Distributed under the MIT License.
 import re
 from enum import Enum
@@ -122,7 +122,7 @@ def checked_graphql_data_map(response: Response) -> dict[str, Any | None]:
         raise GraphQlError(f"GraphQL response must be a map but is: {response_map}.")
     errors = response_map.get("errors")
     if errors is not None:
-        raise GraphQlError(f'{errors[0]["message"]}; details: {errors}.')
+        raise GraphQlError(f"{errors[0]['message']}; details: {errors}.")
     result = response_map.get("data")
     if result is None:
         raise GraphQlError(f"GraphQL result must include data but only has: {sorted(response_map.keys())}.")

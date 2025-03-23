@@ -1,4 +1,4 @@
-# Copyright (C) 2024 by Siisurit e.U., Austria.
+# Copyright (C) 2024-2025 by Siisurit e.U., Austria.
 # All rights reserved. Distributed under the MIT License.
 import argparse
 import logging
@@ -48,8 +48,7 @@ def execute(arguments=None):
         warnings = warnings_for_done_project_items(done_project_items)
         if len(warnings) == 0:
             logger.info(
-                f"All project items are correct, "
-                f"{done_project_items_count!s} checked in the selected project status. "
+                f"All project items are correct, {done_project_items_count!s} checked in the selected project status. "
             )
         else:
             for warning in warnings:
