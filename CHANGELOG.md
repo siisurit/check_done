@@ -1,5 +1,9 @@
 # Check_done changes
 
+## Version 1.2.0, 2025-03-xx
+
+- Migrate build and packaging from poetry to uv (#39)
+
 ## Version 1.1.0, 2024-12-10
 
 - The default configuration file can now also use ".yml" as suffix (#32, contributed by @JMTyndall)

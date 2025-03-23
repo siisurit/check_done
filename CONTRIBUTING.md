@@ -9,7 +9,7 @@ In case you want to play with the source code or contribute changes proceed as f
    git clone https://github.com/roskakori/check_done.git
    cd check_done
    ```
-2. Install [poetry](https://python-poetry.org/).
+2. Install [uv](https://docs.astral.sh/uv/).
 3. Run the setup script to prepare the poetry environment and pre-commit hooks:
    ```bash
    sh scripts/set_up_project.sh
@@ -20,7 +20,7 @@ In case you want to play with the source code or contribute changes proceed as f
 To run the test suite:
 
 ```bash
-poetry run pytest
+uv run pytest
 ```
 
 To build and browse the coverage report in HTML format:
@@ -53,7 +53,7 @@ The code throughout uses a natural naming schema avoiding abbreviations, even fo
 Many coding guidelines are automatically enforced (and some even fixed automatically) by the pre-commit hook. If you want to check and clean up the code without performing a commit, run:
 
 ```bash
-poetry run pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 
 ## Release cheat-sheet
@@ -63,15 +63,16 @@ This section only relevant for developers with access to the PyPI project.
 To add a new release, first update the `pyproject.toml`:
 
 ```toml
-[tool.poetry]
+[project]
+name = "check_done"
 version = "1.x.x"
 ```
 
 Next build the project and run the tests to ensure everything works:
 
 ```bash
-poetry build
-poetry run pytest
+uv build
+uv run pytest
 ```
 
 Then create a tag in the repository:
@@ -84,7 +85,7 @@ git push --tags
 Publish the new version on PyPI:
 
 ```bash
-poetry publish
+uv publish
 ```
 
 Finally, add a release based on the tag from above to the [release page](https://github.com/siisurit/check_done/releases).
